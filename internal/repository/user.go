@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/jasonzhao47/cuddle/internal/domain"
 	"github.com/jasonzhao47/cuddle/internal/repository/dao"
+	"github.com/jasonzhao47/cuddle/internal/web/cache"
 	"time"
 )
 
@@ -13,12 +14,14 @@ var (
 )
 
 type UserRepository struct {
-	dao *dao.UserDAO
+	dao       *dao.UserDAO
+	userCache *cache.UserCache
 }
 
-func NewUserRepository(dao *dao.UserDAO) *UserRepository {
+func NewUserRepository(dao *dao.UserDAO, userCache *cache.UserCache) *UserRepository {
 	return &UserRepository{
-		dao: dao,
+		dao:       dao,
+		userCache: userCache,
 	}
 }
 
@@ -43,6 +46,16 @@ func (repo *UserRepository) UpdateNonZeroFields(ctx context.Context, user domain
 }
 
 func (repo *UserRepository) FindById(ctx context.Context, uid int64) (domain.User, error) {
+	// 两种方式，要不就不查数据库，redis gg = 系统业务 gg
+	// 可能是真没有
+	// 但也有可能是redis挂了，网络链接不好
+	// 可以通过定义错误来屏蔽掉第二种情况，让它也去查数据库
+
+	// 一定要查
+	cu, err := repo.userCache.Get(ctx, uid)
+	if err == nil {
+		return cu, nil
+	}
 	user, err := repo.dao.FindById(ctx, uid)
 	if err != nil {
 		return domain.User{}, err

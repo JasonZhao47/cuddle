@@ -10,7 +10,10 @@ import (
 	"github.com/jasonzhao47/cuddle/internal/repository/dao"
 	"github.com/jasonzhao47/cuddle/internal/service"
 	"github.com/jasonzhao47/cuddle/internal/web"
+	"github.com/jasonzhao47/cuddle/internal/web/cache"
 	"github.com/jasonzhao47/cuddle/internal/web/middleware"
+	"github.com/jasonzhao47/cuddle/pkg/ginx/middleware/ratelimit"
+	redis "github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"net/http"
@@ -24,8 +27,12 @@ func main() {
 	db := initDB()
 	// init user Handlers
 	// initialize a server
-	server := initWebServer()
-	initUserHandlers(db, server)
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: configs.Config.Redis.Addr,
+	})
+	userCache := cache.NewUserCache(redisClient)
+	server := initWebServer(redisClient)
+	initUserHandlers(db, server, userCache)
 	// run a health check
 	server.GET("/health", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "I'm still alive!")
@@ -53,7 +60,7 @@ func initDB() *gorm.DB {
 	return db
 }
 
-func initWebServer() *gin.Engine {
+func initWebServer(redisClient redis.Cmdable) *gin.Engine {
 	server := gin.Default()
 	// CORS
 	// 429 too much requests
@@ -76,14 +83,15 @@ func initWebServer() *gin.Engine {
 	//server.Use(someMiddleware)
 	//useSession(server)
 	useJWT(server)
-
+	// init redis client
 	// 为啥这里要用builder
 	// builder - 某个条件跟另外几个参数强烈耦合，否则就退化成了构造函数
 	// 统一的话也都可以无脑builder，因为相当于上位替代版本
 	// server.Use(middleware.LoginJWTMiddlewareBuilder{}.)
+	server.Use(ratelimit.
+		NewBuilder(redisClient, 1*time.Second, 3).
+		Build())
 
-	// init redis client
-	// redis := initRedis()
 	// other stuffs, JWT, session...
 	// related to web layer
 	// useJWT()
@@ -92,13 +100,13 @@ func initWebServer() *gin.Engine {
 	return server
 }
 
-func initUserHandlers(db *gorm.DB, server *gin.Engine) {
+func initUserHandlers(db *gorm.DB, server *gin.Engine, userCache *cache.UserCache) {
 	// engines and database initialization
 	// 切分的方向
 	// dao
 	userDAO := dao.NewUserDAO(db)
 	// repo
-	userRepo := repository.NewUserRepository(userDAO)
+	userRepo := repository.NewUserRepository(userDAO, userCache)
 	// service
 	userService := service.NewUserService(userRepo)
 	// handler
