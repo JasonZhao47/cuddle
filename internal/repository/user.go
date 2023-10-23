@@ -60,6 +60,11 @@ func (repo *UserRepository) FindById(ctx context.Context, uid int64) (domain.Use
 	if err != nil {
 		return domain.User{}, err
 	}
+	domainUser := repo.toDomain(user)
+	_ = repo.userCache.Set(ctx, domainUser)
+	// 如果缓存没更新，会造成数据直接的不一致
+	// 保守做法：处理错误
+	// 激进做法，数据不一致
 	return repo.toDomain(user), nil
 }
 
