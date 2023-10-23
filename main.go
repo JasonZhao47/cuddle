@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 	"github.com/jasonzhao47/cuddle/configs"
 	"github.com/jasonzhao47/cuddle/internal/repository"
@@ -74,7 +72,7 @@ func initWebServer() *gin.Engine {
 		// MaxAge: second precision
 		MaxAge: 12 * time.Hour,
 	}))
-	server.Use(someMiddleware)
+	//server.Use(someMiddleware)
 	//useSession(server)
 	useJWT(server)
 
@@ -91,10 +89,6 @@ func initWebServer() *gin.Engine {
 	// or use Session to store
 	// or both
 	return server
-}
-
-func someMiddleware(*gin.Context) {
-	fmt.Println("Middleware to be added...")
 }
 
 func initUserHandlers(db *gorm.DB, server *gin.Engine) {
@@ -115,8 +109,16 @@ func initUserHandlers(db *gorm.DB, server *gin.Engine) {
 func useSession(server *gin.Engine) {
 	// stores the secret key for the algorithm
 	loginMiddlewareBuilder := &middleware.LoginMiddlewareBuilder{}
-	store := cookie.NewStore([]byte("secret_key"))
+	//store := cookie.NewStore([]byte("secret_key"))
 	// key in cookie
+	//store, err := redis.NewStore(16, "tcp",
+	//	"localhost:6379",
+	//	"",
+	//	[]byte("9a0ff9e016a41dcd"),
+	//	[]byte("898104dd3b97e4dc"))
+	//if err != nil {
+	//	panic(err)
+	//}
 	// only registers the session
 	server.Use(sessions.Sessions("ssid", store))
 	// check and protect each api
