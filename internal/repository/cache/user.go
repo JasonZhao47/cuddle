@@ -17,11 +17,7 @@ type UserCache struct {
 }
 
 func NewUserCache(cmd redis.Cmdable) *UserCache {
-	// 松耦合，传进来一个接口，让调用方去实现
-	// 这样接口保证了双方的一种规则，能够直接被使用
-	// 如果写成传入一个address这样具体的参数，还是紧耦合
-	// 紧耦合的问题在于如果想更改底层的实现，必须要更改所有的调用方
-	// 除了边缘系统以外，一般不用紧耦合
+
 	return &UserCache{
 		cmd:        cmd,
 		expiration: 15 * time.Minute,

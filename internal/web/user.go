@@ -19,10 +19,12 @@ const (
 	passwordRegexPattern = `^(?=.*[A-Za-z])(?=.*\d)(?=.*[$@$!%*#?&])[A-Za-z\d$@$!%*#?&]{8,}$`
 	// 用户名必须是大小写字母和下划线组合，长度为12以内
 	nickNameRegexPattern = `^[a-zA-Z0-9_]{1,12}$`
+	bizLogin             = "login"
 )
 
 type UserHandler struct {
 	svc            *service.UserService
+	codeSvc        *service.CodeService
 	emailRegExp    *regexp.Regexp
 	passwordRegExp *regexp.Regexp
 	nickNameRegExp *regexp.Regexp
@@ -44,6 +46,8 @@ func (h *UserHandler) RegisterRoutes(server *gin.Engine) {
 		ug.POST("/login", h.LoginJWT)
 		ug.POST("/edit", h.Edit)
 		ug.GET("/profile", h.Profile)
+		ug.POST("/login_sms/code/send", h.SendSMSLoginCode)
+		ug.POST("/login_sms", h.LoginSMS)
 	}
 }
 
@@ -266,6 +270,60 @@ func (h *UserHandler) Login(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "用户名或者密码不对")
 	default:
 		ctx.String(http.StatusOK, "系统错误")
+	}
+}
+
+func (h *UserHandler) SendSMSLoginCode(ctx *gin.Context) {
+	// 生成并发送code，并且设置code
+	type Req struct {
+		Phone string `json:"phone"`
+	}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	if req.Phone == "" {
+		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "请输入手机号码"})
+		return
+	}
+	err := h.codeSvc.Send(ctx, bizLogin, req.Phone)
+	switch err {
+	case nil:
+		ctx.JSON(http.StatusOK, Result{Msg: "发送成功"})
+	case service.ErrTooManyCodeSend:
+		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "短信发送太频繁，请稍后再试"})
+	default:
+		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统错误"})
+		// zap log here
+	}
+}
+
+func (h *UserHandler) LoginSMS(ctx *gin.Context) {
+	type Req struct {
+		Phone string `json:"phone"`
+		Code  string `json:"code"`
+	}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	if req.Phone == "" {
+		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "请输入手机号码"})
+		return
+	}
+	if req.Code == "" {
+		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "请输入验证码"})
+		return
+	}
+	ok, err := h.codeSvc.Verify(ctx, bizLogin, req.Phone, req.Code)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统错误"})
+		// 要打印日志
+		return
+	}
+	if !ok {
+		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "验证码不正确"})
+		return
 	}
 }
 
