@@ -16,6 +16,12 @@ type CodeService struct {
 	repo *repository.CodeRepository
 }
 
+func NewCodeService(repo *repository.CodeRepository) *CodeService {
+	return &CodeService{
+		repo: repo,
+	}
+}
+
 func (c *CodeService) Send(ctx context.Context, biz string, phone string) error {
 	// 通过biz进行业务区别
 	tempCode := generateCode()

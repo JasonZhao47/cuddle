@@ -30,9 +30,10 @@ type UserHandler struct {
 	nickNameRegExp *regexp.Regexp
 }
 
-func NewUserHandler(svc *service.UserService) *UserHandler {
+func NewUserHandler(svc *service.UserService, codeSvc *service.CodeService) *UserHandler {
 	return &UserHandler{
 		svc:            svc,
+		codeSvc:        codeSvc,
 		emailRegExp:    regexp.MustCompile(emailRegexPattern, regexp.None),
 		passwordRegExp: regexp.MustCompile(passwordRegexPattern, regexp.None),
 		nickNameRegExp: regexp.MustCompile(nickNameRegexPattern, regexp.None),

@@ -1,6 +1,7 @@
 package main
 
 import (
+	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -31,8 +32,9 @@ func main() {
 		Addr: configs.Config.Redis.Addr,
 	})
 	userCache := cache.NewUserCache(redisClient)
+	codeCache := cache.NewRedisCodeCache(redisClient)
 	server := initWebServer(redisClient)
-	initUserHandlers(db, server, userCache)
+	initUserHandlers(db, server, userCache, codeCache)
 	// run a health check
 	server.GET("/health", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "I'm still alive!")
@@ -100,17 +102,21 @@ func initWebServer(redisClient redis.Cmdable) *gin.Engine {
 	return server
 }
 
-func initUserHandlers(db *gorm.DB, server *gin.Engine, userCache *cache.UserCache) {
+func initUserHandlers(db *gorm.DB, server *gin.Engine,
+	userCache *cache.UserCache,
+	codeCache cache.CodeCache) {
 	// engines and database initialization
 	// 切分的方向
 	// dao
 	userDAO := dao.NewUserDAO(db)
 	// repo
 	userRepo := repository.NewUserRepository(userDAO, userCache)
+	codeRepo := repository.NewCodeRepository(codeCache)
 	// service
 	userService := service.NewUserService(userRepo)
+	codeService := service.NewCodeService(codeRepo)
 	// handler
-	hdl := web.NewUserHandler(userService)
+	hdl := web.NewUserHandler(userService, codeService)
 	// route
 	hdl.RegisterRoutes(server)
 }
@@ -135,6 +141,8 @@ func useSession(server *gin.Engine) {
 }
 
 func useJWT(server *gin.Engine) {
-	loginJWTBuilder := &middleware.LoginJWTBuilder{}
+	loginJWTBuilder := &middleware.LoginJWTBuilder{
+		LoginPathRegExp: regexp.MustCompile(middleware.LoginPathPattern, regexp.None),
+	}
 	server.Use(loginJWTBuilder.Build())
 }

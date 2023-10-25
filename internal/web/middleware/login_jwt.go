@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	regexp "github.com/dlclark/regexp2"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/jasonzhao47/cuddle/internal/web"
@@ -10,15 +11,30 @@ import (
 	"time"
 )
 
+const LoginPathPattern = `^/users/(signup|login)`
+
 type LoginJWTBuilder struct {
+	LoginPathRegExp *regexp.Regexp
 }
 
 func (builder *LoginJWTBuilder) Build() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		path := ctx.Request.URL.Path
-		if path == "/users/signup" || path == "/users/login" {
+		ok, err := builder.LoginPathRegExp.MatchString(path)
+		if err != nil {
+			// log
+			fmt.Println("解析String出现异常")
+			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
+
+		if ok {
+			// 埋
+			return
+		}
+		//if path == "/users/signup" || path == "/users/login" {
+		//	return
+		//}
 		// 根据JWT验证登录信息
 
 		// 解析Bearer的内容
