@@ -52,5 +52,5 @@ func (cache *UserCache) Set(ctx context.Context, user domain.User) error {
 		return err
 	}
 	key := cache.key(user.Id)
-	return cache.cmd.Set(ctx, key, []byte(data), cache.expiration).Err()
+	return cache.cmd.Set(ctx, key, data, cache.expiration).Err()
 }

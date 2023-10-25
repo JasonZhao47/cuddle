@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 	"github.com/jasonzhao47/cuddle/internal/domain"
+	"github.com/jasonzhao47/cuddle/internal/repository/cache"
 	"github.com/jasonzhao47/cuddle/internal/repository/dao"
-	"github.com/jasonzhao47/cuddle/internal/web/cache"
 	"time"
 )
 
