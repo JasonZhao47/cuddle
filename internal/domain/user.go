@@ -9,6 +9,7 @@ type User struct {
 	Nickname string
 	Password string
 	Email    string
+	Phone    string
 
 	Birthday time.Time
 	AboutMe  string

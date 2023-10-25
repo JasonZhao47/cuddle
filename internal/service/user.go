@@ -10,7 +10,7 @@ import (
 
 // 定义业务处理的异常
 var (
-	ErrDuplicateEmail        = repository.ErrDuplicateEmail
+	ErrDuplicateEmail        = repository.ErrUserDuplicate
 	ErrInvalidUserOrPassword = errors.New("用户不存在或者密码不对")
 )
 
@@ -58,4 +58,20 @@ func (svc *UserService) UpdateNonPII(ctx context.Context, user domain.User) erro
 func (svc *UserService) FindById(ctx context.Context, uid int64) (domain.User, error) {
 	user, err := svc.repo.FindById(ctx, uid)
 	return user, err
+}
+
+func (svc *UserService) FindOrCreate(ctx context.Context, phone string) (domain.User, error) {
+	_, err := svc.repo.FindByPhone(ctx, phone)
+	if err != repository.ErrRecordNotFound {
+		return domain.User{}, err
+	}
+
+	err = svc.repo.Create(ctx, domain.User{
+		Phone: phone,
+	})
+	if err != nil && err != repository.ErrUserDuplicate {
+		return domain.User{}, err
+	}
+
+	return svc.repo.FindByPhone(ctx, phone)
 }

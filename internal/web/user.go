@@ -5,6 +5,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"github.com/jasonzhao47/cuddle/internal/domain"
 	"github.com/jasonzhao47/cuddle/internal/service"
 	"net/http"
@@ -147,7 +148,7 @@ func (h *UserHandler) Edit(ctx *gin.Context) {
 	}
 
 	err = h.svc.UpdateNonPII(ctx, domain.User{
-		Id:       userClaim.Uid,
+		Id:       userClaim.Id,
 		Nickname: req.Nickname,
 		Birthday: birthday,
 		AboutMe:  req.AboutMe,
@@ -175,7 +176,7 @@ func (h *UserHandler) Profile(ctx *gin.Context) {
 		return
 	}
 	// find by user's id
-	u, err := h.svc.FindById(ctx, userClaim.Uid)
+	u, err := h.svc.FindById(ctx, userClaim.Id)
 	if err != nil {
 		ctx.String(http.StatusOK, "系统异常")
 		return
@@ -218,7 +219,7 @@ func (h *UserHandler) LoginJWT(ctx *gin.Context) {
 	switch err {
 	case nil:
 		userClaim := UserClaim{
-			Uid:       user.Id,
+			Id:        user.Id,
 			UserAgent: ctx.GetHeader("User-Agent"),
 			RegisteredClaims: jwt.RegisteredClaims{
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute)),
@@ -326,12 +327,44 @@ func (h *UserHandler) LoginSMS(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "验证码不正确"})
 		return
 	}
+	user, err := h.svc.FindOrCreate(ctx, req.Phone)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "系统错误"})
+		return
+	}
+	ssid := uuid.New().String()
+	// set JWT Token
+	err = h.setJWTToken(ctx, ssid, user.Id)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "系统错误"})
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{Code: 0, Msg: "登录成功"})
 }
 
 var JWTKey = []byte("k6CswdUm77WKcbM68UQUuxVsHSpTCwgK")
 
 type UserClaim struct {
 	jwt.RegisteredClaims
-	Uid       int64
+	Id        int64
 	UserAgent string
+	Ssid      string
+}
+
+func (h *UserHandler) setJWTToken(ctx *gin.Context, ssid string, uid int64) error {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS512, UserClaim{
+		Id:        uid,
+		Ssid:      ssid,
+		UserAgent: ctx.GetHeader("User-Agent"),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Minute)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	})
+	tokenStr, err := token.SignedString(JWTKey)
+	if err != nil {
+		return err
+	}
+	ctx.Header("x-jwt-token", tokenStr)
+	return nil
 }
