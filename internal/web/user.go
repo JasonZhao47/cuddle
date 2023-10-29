@@ -24,14 +24,14 @@ const (
 )
 
 type UserHandler struct {
-	svc            *service.UserService
-	codeSvc        *service.CodeService
+	svc            service.UserService
+	codeSvc        service.CodeService
 	emailRegExp    *regexp.Regexp
 	passwordRegExp *regexp.Regexp
 	nickNameRegExp *regexp.Regexp
 }
 
-func NewUserHandler(svc *service.UserService, codeSvc *service.CodeService) *UserHandler {
+func NewUserHandler(svc service.UserService, codeSvc service.CodeService) *UserHandler {
 	return &UserHandler{
 		svc:            svc,
 		codeSvc:        codeSvc,
@@ -91,7 +91,7 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 		return
 	}
 
-	err = h.svc.SignUp(ctx, domain.User{
+	err = h.svc.Signup(ctx, domain.User{
 		Email:    req.Email,
 		Password: req.Password,
 	})

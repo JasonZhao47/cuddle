@@ -12,17 +12,22 @@ var (
 	ErrTooManyCodeSend = cache.ErrNextCodeTooSoon
 )
 
-type CodeService struct {
+type CodeService interface {
+	Send(ctx context.Context, biz string, phone string) error
+	Verify(ctx context.Context, biz string, phone string, inputCode string) (bool, error)
+}
+
+type SMSCodeService struct {
 	repo *repository.CodeRepository
 }
 
-func NewCodeService(repo *repository.CodeRepository) *CodeService {
-	return &CodeService{
+func NewCodeService(repo *repository.CodeRepository) CodeService {
+	return &SMSCodeService{
 		repo: repo,
 	}
 }
 
-func (c *CodeService) Send(ctx context.Context, biz string, phone string) error {
+func (c *SMSCodeService) Send(ctx context.Context, biz string, phone string) error {
 	// 通过biz进行业务区别
 	tempCode := generateCode()
 	err := c.repo.Set(ctx, biz, phone, tempCode)
@@ -33,7 +38,7 @@ func (c *CodeService) Send(ctx context.Context, biz string, phone string) error 
 	return nil
 }
 
-func (c *CodeService) Verify(ctx context.Context, biz string, phone string, code string) (bool, error) {
+func (c *SMSCodeService) Verify(ctx context.Context, biz string, phone string, code string) (bool, error) {
 	success, err := c.repo.Verify(ctx, biz, phone, code)
 	if err == repository.ErrVerifyTooManyTimes {
 		return false, err

@@ -11,24 +11,28 @@ import (
 
 // 业务层cache
 
-type UserCache struct {
+type UserCache interface {
+	Get(context.Context, int64) (domain.User, error)
+	Set(context.Context, domain.User) error
+}
+
+type UserRedisCache struct {
 	cmd        redis.Cmdable
 	expiration time.Duration
 }
 
-func NewUserCache(cmd redis.Cmdable) *UserCache {
-
-	return &UserCache{
+func NewRedisUserCache(cmd redis.Cmdable) UserCache {
+	return &UserRedisCache{
 		cmd:        cmd,
 		expiration: 15 * time.Minute,
 	}
 }
 
-func (cache *UserCache) key(id int64) string {
+func (cache *UserRedisCache) key(id int64) string {
 	return fmt.Sprintf("user:info:%d", id)
 }
 
-func (cache *UserCache) Get(ctx context.Context, id int64) (domain.User, error) {
+func (cache *UserRedisCache) Get(ctx context.Context, id int64) (domain.User, error) {
 	key := cache.key(id)
 	data, err := cache.cmd.Get(ctx, key).Result()
 	if err != nil {
@@ -42,7 +46,7 @@ func (cache *UserCache) Get(ctx context.Context, id int64) (domain.User, error) 
 	return u, nil
 }
 
-func (cache *UserCache) Set(ctx context.Context, user domain.User) error {
+func (cache *UserRedisCache) Set(ctx context.Context, user domain.User) error {
 	data, err := json.Marshal(user)
 	if err != nil {
 		return err
