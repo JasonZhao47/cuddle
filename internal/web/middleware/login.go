@@ -12,6 +12,7 @@ type LoginMiddlewareBuilder struct {
 
 func (m *LoginMiddlewareBuilder) Build() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		// todo: update logic here, don't
 		path := ctx.Request.URL.Path
 		if path == "/users/signup" || path == "/users/login" {
 			return

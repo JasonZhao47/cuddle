@@ -17,6 +17,12 @@ type LoginJWTBuilder struct {
 	LoginPathRegExp *regexp.Regexp
 }
 
+func NewLoginJWTBuilder(loginPathRegExp *regexp.Regexp) *LoginJWTBuilder {
+	return &LoginJWTBuilder{
+		LoginPathRegExp: loginPathRegExp,
+	}
+}
+
 func (builder *LoginJWTBuilder) Build() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		path := ctx.Request.URL.Path
