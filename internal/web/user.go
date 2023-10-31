@@ -26,7 +26,7 @@ const (
 type UserHandler struct {
 	svc            service.UserService
 	codeSvc        service.CodeService
-	emailRegExp    *regexp.Regexp
+	EmailRegExp    *regexp.Regexp
 	passwordRegExp *regexp.Regexp
 	nickNameRegExp *regexp.Regexp
 }
@@ -35,7 +35,7 @@ func NewUserHandler(svc service.UserService, codeSvc service.CodeService) *UserH
 	return &UserHandler{
 		svc:            svc,
 		codeSvc:        codeSvc,
-		emailRegExp:    regexp.MustCompile(emailRegexPattern, regexp.None),
+		EmailRegExp:    regexp.MustCompile(emailRegexPattern, regexp.None),
 		passwordRegExp: regexp.MustCompile(passwordRegexPattern, regexp.None),
 		nickNameRegExp: regexp.MustCompile(nickNameRegexPattern, regexp.None),
 	}
@@ -66,7 +66,7 @@ func (h *UserHandler) SignUp(ctx *gin.Context) {
 	if err := ctx.Bind(&req); err != nil {
 		return
 	}
-	isEmail, err := h.emailRegExp.MatchString(req.Email)
+	isEmail, err := h.EmailRegExp.MatchString(req.Email)
 	if err != nil {
 		ctx.String(http.StatusOK, "系统错误")
 		return

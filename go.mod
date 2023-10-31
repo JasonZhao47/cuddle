@@ -14,6 +14,7 @@ require (
 	github.com/hashicorp/golang-lru v1.0.2
 	github.com/redis/go-redis/v9 v9.2.1
 	github.com/stretchr/testify v1.8.3
+	go.uber.org/mock v0.3.0
 	golang.org/x/crypto v0.9.0
 	gorm.io/driver/mysql v1.5.2
 	gorm.io/gorm v1.25.5
