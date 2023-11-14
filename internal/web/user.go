@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jasonzhao47/cuddle/internal/domain"
 	"github.com/jasonzhao47/cuddle/internal/service"
+	"go.uber.org/zap"
 	"net/http"
 	"time"
 )
@@ -320,6 +321,7 @@ func (h *UserHandler) LoginSMS(ctx *gin.Context) {
 	ok, err := h.codeSvc.Verify(ctx, bizLogin, req.Phone, req.Code)
 	if err != nil {
 		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统错误"})
+		zap.L().Error("用户手机号码登陆失败", zap.Error(err))
 		// 要打印日志
 		return
 	}

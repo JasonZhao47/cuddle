@@ -1,17 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"net/http"
 )
 
 func main() {
 	// all-in-one initialization for web server
 	initViperV2()
-	//initLogger()
+	initLogger()
 	//initThirdParty()
 	server := InitWebServer()
 	// run a health check
@@ -37,19 +37,19 @@ func main() {
 	// shutdown the server gracefully
 }
 
-// Deprecated: Use V2 instead
-func initViper() {
-	// load in minimum configs
-	// including server itself
-	viper.SetConfigName("dev")
-	viper.SetConfigType("yaml")
-	// relative directory for viper(or for go, precisely) is looking from working directory
-	viper.AddConfigPath("configs")
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(fmt.Errorf("fatal error config file: %w", err))
-	}
-}
+// initViper is deprecated: Use V2 instead.
+//func initViper() {
+//	// load in minimum configs
+//	// including server itself
+//	viper.SetConfigName("dev")
+//	viper.SetConfigType("yaml")
+//	// relative directory for viper(or for go, precisely) is looking from working directory
+//	viper.AddConfigPath("configs")
+//	err := viper.ReadInConfig()
+//	if err != nil {
+//		panic(fmt.Errorf("fatal error config file: %w", err))
+//	}
+//}
 
 func initViperV2() {
 	cfile := pflag.String("config", "config/dev.yaml", "path to config")
@@ -59,4 +59,12 @@ func initViperV2() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func initLogger() {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+	zap.ReplaceGlobals(logger)
 }
