@@ -7,8 +7,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jasonzhao47/cuddle/internal/domain"
+	"github.com/jasonzhao47/cuddle/internal/logger"
 	"github.com/jasonzhao47/cuddle/internal/service"
-	"go.uber.org/zap"
 	"net/http"
 	"time"
 )
@@ -30,15 +30,17 @@ type UserHandler struct {
 	EmailRegExp    *regexp.Regexp
 	passwordRegExp *regexp.Regexp
 	nickNameRegExp *regexp.Regexp
+	logger         logger.Logger
 }
 
-func NewUserHandler(svc service.UserService, codeSvc service.CodeService) *UserHandler {
+func NewUserHandler(svc service.UserService, codeSvc service.CodeService, logger logger.Logger) *UserHandler {
 	return &UserHandler{
 		svc:            svc,
 		codeSvc:        codeSvc,
 		EmailRegExp:    regexp.MustCompile(emailRegexPattern, regexp.None),
 		passwordRegExp: regexp.MustCompile(passwordRegexPattern, regexp.None),
 		nickNameRegExp: regexp.MustCompile(nickNameRegexPattern, regexp.None),
+		logger:         logger,
 	}
 }
 
@@ -295,7 +297,7 @@ func (h *UserHandler) SendSMSLoginCode(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, Result{Msg: "发送成功"})
 	case service.ErrTooManyCodeSend:
 		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "短信发送太频繁，请稍后再试"})
-		zap.L().Warn("短信发送过于频繁")
+		h.logger.Warn("短信发送过于频繁")
 	default:
 		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统错误"})
 		// zap log here
@@ -322,7 +324,10 @@ func (h *UserHandler) LoginSMS(ctx *gin.Context) {
 	ok, err := h.codeSvc.Verify(ctx, bizLogin, req.Phone, req.Code)
 	if err != nil {
 		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统错误"})
-		zap.L().Error("用户手机号码登陆失败", zap.Error(err))
+		h.logger.Error("用户手机号码登陆失败", logger.Field{
+			Key:   "5",
+			Value: err.Error(),
+		})
 		// 要打印日志
 		return
 	}

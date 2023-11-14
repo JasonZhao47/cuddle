@@ -17,7 +17,7 @@ func InitWebServer() *gin.Engine {
 	// 按照从底到上来排列项目的依赖
 	wire.Build(
 		// ioc部分，公用组件集成 —— 数据库、缓存、日志
-		ioc.InitRedis, ioc.InitDB,
+		ioc.InitRedis, ioc.InitDB, ioc.InitLogger,
 
 		// DAO
 		dao.NewUserDAO,
