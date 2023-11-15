@@ -16,10 +16,12 @@ import (
 
 func InitWebServer(
 	middlewares []gin.HandlerFunc,
-	userHandler *web.UserHandler) *gin.Engine {
+	userHandler *web.UserHandler,
+	articleHandler *web.ArticleHandler) *gin.Engine {
 	server := gin.Default()
 	server.Use(middlewares...)
 	userHandler.RegisterRoutes(server)
+	articleHandler.RegisterRoutes(server)
 	return server
 }
 

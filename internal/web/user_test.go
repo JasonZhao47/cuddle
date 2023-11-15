@@ -5,12 +5,14 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/jasonzhao47/cuddle/internal/domain"
+	"github.com/jasonzhao47/cuddle/internal/logger"
 	"github.com/jasonzhao47/cuddle/internal/service"
 	svcmock "github.com/jasonzhao47/cuddle/internal/service/mocks"
 	"github.com/jasonzhao47/cuddle/internal/web"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
+	"go.uber.org/zap"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -98,7 +100,7 @@ func TestUserHandler_SignUp(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			userSvc, codeSvc := tc.mock(ctrl)
-			handler := web.NewUserHandler(userSvc, codeSvc)
+			handler := web.NewUserHandler(userSvc, codeSvc, logger.NewLogger(zap.L()))
 
 			server := gin.Default()
 			handler.RegisterRoutes(server)
@@ -157,7 +159,7 @@ func TestUserHandler_Login(t *testing.T) {
 			defer ctrl.Finish()
 
 			userSvc, codeSvc := tc.mock(ctrl)
-			userHdl := web.NewUserHandler(userSvc, codeSvc)
+			userHdl := web.NewUserHandler(userSvc, codeSvc, logger.NewLogger(zap.L()))
 
 			server := gin.Default()
 			userHdl.RegisterRoutes(server)
