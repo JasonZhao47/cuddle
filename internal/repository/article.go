@@ -9,6 +9,7 @@ import (
 
 type ArticleRepository interface {
 	GetById(context.Context, int64) (*domain.Article, error)
+	Insert(context.Context, *domain.Article) (int64, error)
 }
 
 type articleRepository struct {
@@ -30,6 +31,14 @@ func (repo *articleRepository) GetById(ctx context.Context, id int64) (*domain.A
 	return repo.toDomain(art), nil
 }
 
+func (repo *articleRepository) Insert(ctx context.Context, article *domain.Article) (int64, error) {
+	id, err := repo.dao.Insert(ctx, repo.toEntity(article))
+	if err != nil {
+		return article.Id, err
+	}
+	return id, nil
+}
+
 func (repo *articleRepository) toDomain(dao *dao.Article) *domain.Article {
 	return &domain.Article{
 		Id: dao.Id,
@@ -43,5 +52,17 @@ func (repo *articleRepository) toDomain(dao *dao.Article) *domain.Article {
 		Content: dao.Content,
 		CTime:   time.UnixMilli(dao.CTime),
 		UTime:   time.UnixMilli(dao.UTime),
+	}
+}
+
+func (repo *articleRepository) toEntity(art *domain.Article) *dao.Article {
+	return &dao.Article{
+		Id:       art.Id,
+		AuthorId: art.Author.Id,
+		Topic:    art.Topic,
+		Status:   uint8(art.Status),
+		Content:  art.Content,
+		CTime:    art.CTime.UnixMilli(),
+		UTime:    art.UTime.UnixMilli(),
 	}
 }

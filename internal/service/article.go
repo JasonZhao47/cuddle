@@ -8,6 +8,7 @@ import (
 
 type ArticleService interface {
 	GetById(context.Context, int64) (*domain.Article, error)
+	Save(context.Context, *domain.Article) (int64, error)
 }
 
 type articleService struct {
@@ -24,4 +25,12 @@ func (svc *articleService) GetById(ctx context.Context, id int64) (*domain.Artic
 		return nil, err
 	}
 	return art, nil
+}
+
+func (svc *articleService) Save(ctx context.Context, art *domain.Article) (int64, error) {
+	id, err := svc.repo.Insert(ctx, art)
+	if err != nil {
+		return 0, err
+	}
+	return id, nil
 }

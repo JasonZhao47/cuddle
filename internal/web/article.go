@@ -2,6 +2,7 @@ package web
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/jasonzhao47/cuddle/internal/domain"
 	"github.com/jasonzhao47/cuddle/internal/logger"
 	"github.com/jasonzhao47/cuddle/internal/service"
 	"net/http"
@@ -32,7 +33,40 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 }
 
 func (h *ArticleHandler) Edit(ctx *gin.Context) {
-
+	type Req struct {
+		Topic   string `json:"topic"`
+		Content string `json:"content"`
+		Id      int64  `json:"id"`
+	}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	// 登陆态
+	uc := ctx.MustGet("user").(UserClaim)
+	// 为什么需要id?
+	id, err := h.svc.Save(ctx, &domain.Article{
+		Id: req.Id,
+		// if a pointer is used to access a struct
+		// are all the sub structs also copied?
+		Author: domain.Author{
+			Id: uc.Id,
+		},
+		Topic:   req.Topic,
+		Content: req.Content,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "编辑失败",
+			Data: nil,
+		})
+		h.l.Error("编辑存储失败了", logger.Int64("id", req.Id), logger.Error(err))
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{
+		Data: id,
+	})
 }
 
 func (h *ArticleHandler) Publish(ctx *gin.Context) {

@@ -20,6 +20,7 @@ type Result[T any] struct {
 	Msg  string `json:"msg"`
 	Data T      `json:"data"`
 }
+
 type ArticleHandlerSuite struct {
 	suite.Suite
 	db     *gorm.DB
@@ -32,7 +33,7 @@ func (s *ArticleHandlerSuite) SetupSuite() {
 	server := gin.Default()
 	server.Use(func(ctx *gin.Context) {
 		ctx.Set(`user`, web.UserClaim{
-			Id: 123,
+			Id: 15,
 		})
 	})
 	hdl.RegisterRoutes(server)
@@ -44,7 +45,7 @@ func (s *ArticleHandlerSuite) TestEdit() {
 	testCases := []struct {
 		name string
 		req  Article
-		// 在难以mock的时候，自己定义一个模型
+		// 集成测试不需要mock
 
 		before func(*testing.T)
 		after  func(*testing.T)
@@ -55,16 +56,16 @@ func (s *ArticleHandlerSuite) TestEdit() {
 		{
 			name: "编辑文章",
 			req: Article{
-				Id:      1,
-				Title:   "",
-				Content: "",
+				Id:      20026,
+				Topic:   "Title for testing",
+				Content: "Content",
 			},
 			before: func(t *testing.T) {
 
 			},
 			after: func(t *testing.T) {
 				var art dao.Article
-				s.db.Where("id = ?", art.Id).First(&art)
+				s.db.Where("id = ?", 20026).First(&art)
 				assert.Equal(t, "Title for testing", art.Topic)
 				assert.Equal(t, "Content", art.Content)
 				assert.Equal(t, int64(15), art.AuthorId)
@@ -73,7 +74,7 @@ func (s *ArticleHandlerSuite) TestEdit() {
 			},
 			wantCode: 200,
 			wantResult: Result[int64]{
-				Data: 1,
+				Data: 20026,
 			},
 		},
 	}
@@ -103,12 +104,17 @@ func (s *ArticleHandlerSuite) TestEdit() {
 	}
 }
 
+func (s *ArticleHandlerSuite) TearDownTest() {
+	err := s.db.Exec("truncate table `articles`").Error
+	assert.NoError(s.T(), err)
+}
+
 func TestArticleHandler(t *testing.T) {
 	suite.Run(t, &ArticleHandlerSuite{})
 }
 
 type Article struct {
 	Id      int64  `json:"id"`
-	Title   string `json:"title"`
+	Topic   string `json:"topic"`
 	Content string `json:"content"`
 }

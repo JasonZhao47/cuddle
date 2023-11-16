@@ -3,10 +3,12 @@ package dao
 import (
 	"context"
 	"gorm.io/gorm"
+	"time"
 )
 
 type ArticleDAO interface {
 	GetById(context.Context, int64) (*Article, error)
+	Insert(context.Context, *Article) (int64, error)
 }
 
 type ArticleGormDAO struct {
@@ -26,6 +28,14 @@ func (dao *ArticleGormDAO) GetById(ctx context.Context, id int64) (*Article, err
 		return nil, err
 	}
 	return art, err
+}
+
+func (dao *ArticleGormDAO) Insert(ctx context.Context, article *Article) (int64, error) {
+	now := time.Now().UnixMilli()
+	article.CTime = now
+	article.UTime = now
+	err := dao.db.WithContext(ctx).Create(&article).Error
+	return article.Id, err
 }
 
 type Article struct {
