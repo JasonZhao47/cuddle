@@ -3,6 +3,7 @@ package web
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/jasonzhao47/cuddle/internal/domain"
 	"github.com/jasonzhao47/cuddle/internal/logger"
 	"github.com/jasonzhao47/cuddle/internal/service"
 	svcmock "github.com/jasonzhao47/cuddle/internal/service/mocks"
@@ -28,10 +29,15 @@ func TestArticleHandler_Detail(t *testing.T) {
 			name: "返回帖子内容",
 			mock: func(ctrl *gomock.Controller) service.ArticleService {
 				svc := svcmock.NewMockArticleService(ctrl)
-				svc.EXPECT().Detail(gomock.Any()).Return(nil)
+				svc.EXPECT().GetById(gomock.Any(), gomock.Any()).Return(&domain.Article{
+					Author: domain.Author{
+						Id: 1,
+					},
+				}, nil)
 				return svc
 			},
 			reqBuilder: func(t *testing.T) *http.Request {
+
 				articleId := 1
 				url := fmt.Sprintf("/articles/detail/%d", articleId)
 				req, err := http.NewRequest(http.MethodGet, url, nil)
@@ -40,7 +46,24 @@ func TestArticleHandler_Detail(t *testing.T) {
 				return req
 			},
 			wantCode: 200,
-			wantBody: "",
+			wantBody: "{\"code\":0,\"msg\":\"\",\"data\":null}",
+		},
+		{
+			name: "返回id错误",
+			mock: func(ctrl *gomock.Controller) service.ArticleService {
+				svc := svcmock.NewMockArticleService(ctrl)
+				return svc
+			},
+			reqBuilder: func(t *testing.T) *http.Request {
+				articleId := "bcdedit"
+				url := fmt.Sprintf("/articles/detail/%v", articleId)
+				req, err := http.NewRequest(http.MethodGet, url, nil)
+				req.Header.Set("Content-Type", "application/json")
+				require.NoError(t, err)
+				return req
+			},
+			wantCode: 200,
+			wantBody: `{"code":4,"msg":"id参数错误","data":null}`,
 		},
 	}
 
@@ -52,13 +75,16 @@ func TestArticleHandler_Detail(t *testing.T) {
 			svc := tc.mock(ctrl)
 			hdl := NewArticleHandler(svc, logger.NewLogger(zap.L()))
 
-			server := gin.Default()
-			hdl.RegisterRoutes(server)
-
 			recorder := httptest.NewRecorder()
 			req := tc.reqBuilder(t)
 
 			// implements the interface to response writer
+			server := gin.Default()
+			server.Use(func(c *gin.Context) {
+				c.Set("user", UserClaim{Id: 1}) // Set your user claim here
+				c.Next()
+			})
+			hdl.RegisterRoutes(server)
 			server.ServeHTTP(recorder, req)
 
 			assert.Equal(t, tc.wantCode, recorder.Code)

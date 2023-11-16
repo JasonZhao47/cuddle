@@ -9,6 +9,7 @@
 package svcmock
 
 import (
+	context "context"
 	reflect "reflect"
 
 	domain "github.com/jasonzhao47/cuddle/internal/domain"
@@ -38,16 +39,17 @@ func (m *MockArticleService) EXPECT() *MockArticleServiceMockRecorder {
 	return m.recorder
 }
 
-// Detail mocks base method.
-func (m *MockArticleService) Detail(arg0 int64) *domain.Article {
+// GetById mocks base method.
+func (m *MockArticleService) GetById(arg0 context.Context, arg1 int64) (*domain.Article, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Detail", arg0)
+	ret := m.ctrl.Call(m, "GetById", arg0, arg1)
 	ret0, _ := ret[0].(*domain.Article)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// Detail indicates an expected call of Detail.
-func (mr *MockArticleServiceMockRecorder) Detail(arg0 any) *gomock.Call {
+// GetById indicates an expected call of GetById.
+func (mr *MockArticleServiceMockRecorder) GetById(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Detail", reflect.TypeOf((*MockArticleService)(nil).Detail), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockArticleService)(nil).GetById), arg0, arg1)
 }

@@ -16,7 +16,7 @@ type Logger interface {
 
 type Field struct {
 	Key   string
-	Value string
+	Value any
 }
 
 type ZapLogger struct {

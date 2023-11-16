@@ -1,23 +1,27 @@
 package service
 
 import (
+	"context"
 	"github.com/jasonzhao47/cuddle/internal/domain"
-	"github.com/jasonzhao47/cuddle/internal/repository/dao"
+	"github.com/jasonzhao47/cuddle/internal/repository"
 )
 
 type ArticleService interface {
-	Detail(int64) *domain.Article
+	GetById(context.Context, int64) (*domain.Article, error)
 }
 
 type articleService struct {
-	dao dao.ArticleDAO
+	repo repository.ArticleRepository
 }
 
-func NewArticleService(dao dao.ArticleDAO) ArticleService {
-	return &articleService{dao: dao}
+func NewArticleService(repo repository.ArticleRepository) ArticleService {
+	return &articleService{repo: repo}
 }
 
-func (svc *articleService) Detail(id int64) *domain.Article {
-	//TODO implement me
-	panic("implement me")
+func (svc *articleService) GetById(ctx context.Context, id int64) (*domain.Article, error) {
+	art, err := svc.repo.GetById(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return art, nil
 }
