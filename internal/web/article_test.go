@@ -46,7 +46,7 @@ func TestArticleHandler_Detail(t *testing.T) {
 				return req
 			},
 			wantCode: 200,
-			wantBody: "{\"code\":0,\"msg\":\"\",\"data\":null}",
+			wantBody: `{"code":0,"msg":"","data":null}`,
 		},
 		{
 			name: "返回id错误",
@@ -91,5 +91,4 @@ func TestArticleHandler_Detail(t *testing.T) {
 			assert.Equal(t, tc.wantBody, recorder.Body.String())
 		})
 	}
-
 }

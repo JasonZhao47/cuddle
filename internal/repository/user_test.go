@@ -38,12 +38,8 @@ package repository_test
 //		t.Run(tc.name, func(t *testing.T) {
 //			ctrl := gomock.NewController(t)
 //			defer ctrl.Finish()
-//
 //			userDao, userCache := tc.mock(ctrl)
-//
 //			repo := repository.NewUserRepository(userDao, userCache)
-//
 //		})
-//
 //	}
 //}
