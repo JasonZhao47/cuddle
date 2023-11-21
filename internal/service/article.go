@@ -10,7 +10,7 @@ type ArticleService interface {
 	GetById(context.Context, int64) (*domain.Article, error)
 	// Save upsert语义
 	Save(context.Context, *domain.Article) (int64, error)
-	GetByAuthorId(ctx context.Context, authorId int64, page int, pageSize int) ([]*domain.Article, error)
+	List(ctx context.Context, authorId int64, page int, pageSize int) ([]*domain.Article, error)
 }
 
 type articleService struct {
@@ -30,6 +30,8 @@ func (svc *articleService) GetById(ctx context.Context, id int64) (*domain.Artic
 }
 
 func (svc *articleService) Save(ctx context.Context, art *domain.Article) (int64, error) {
+	// upsert, so
+	// id is used to identify which case
 	id, err := svc.repo.Insert(ctx, art)
 	if err != nil {
 		return 0, err
@@ -37,6 +39,6 @@ func (svc *articleService) Save(ctx context.Context, art *domain.Article) (int64
 	return id, nil
 }
 
-func (svc *articleService) GetByAuthorId(ctx context.Context, authorId int64, page int, pageSize int) ([]*domain.Article, error) {
-	panic("Implement me")
+func (svc *articleService) List(ctx context.Context, authorId int64, page int, pageSize int) ([]*domain.Article, error) {
+	return svc.repo.GetByAuthorId(ctx, authorId, page, pageSize)
 }

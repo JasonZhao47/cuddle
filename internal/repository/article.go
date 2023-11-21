@@ -10,6 +10,7 @@ import (
 type ArticleRepository interface {
 	GetById(context.Context, int64) (*domain.Article, error)
 	Insert(context.Context, *domain.Article) (int64, error)
+	GetByAuthorId(context.Context, int64, int, int) ([]*domain.Article, error)
 }
 
 type articleRepository struct {
@@ -37,6 +38,20 @@ func (repo *articleRepository) Insert(ctx context.Context, article *domain.Artic
 		return article.Id, err
 	}
 	return id, nil
+}
+
+func (repo *articleRepository) GetByAuthorId(ctx context.Context, authorId int64, page int, pageSize int) ([]*domain.Article, error) {
+	arts, err := repo.dao.GetByAuthorId(ctx, authorId, page, pageSize)
+	if err != nil {
+		return []*domain.Article{}, err
+	}
+
+	res := make([]*domain.Article, len(arts))
+	for i := range arts {
+		res[i] = repo.toDomain(arts[i])
+	}
+
+	return res, err
 }
 
 func (repo *articleRepository) toDomain(dao *dao.Article) *domain.Article {

@@ -9,6 +9,7 @@ import (
 type ArticleDAO interface {
 	GetById(context.Context, int64) (*Article, error)
 	Insert(context.Context, *Article) (int64, error)
+	GetByAuthorId(context.Context, int64, int, int) ([]*Article, error)
 }
 
 type ArticleGormDAO struct {
@@ -36,6 +37,12 @@ func (dao *ArticleGormDAO) Insert(ctx context.Context, article *Article) (int64,
 	article.UTime = now
 	err := dao.db.WithContext(ctx).Create(&article).Error
 	return article.Id, err
+}
+
+func (dao *ArticleGormDAO) GetByAuthorId(ctx context.Context, authorId int64, page int, pageSize int) ([]*Article, error) {
+	var arts []*Article
+	err := dao.db.WithContext(ctx).Where("author_id = ?", authorId).Find(&arts).Error
+	return arts, err
 }
 
 type Article struct {

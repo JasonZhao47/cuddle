@@ -125,20 +125,23 @@ func (h *ArticleHandler) List(ctx *gin.Context) {
 		return
 	}
 	// 登陆态
-	//user := ctx.MustGet("user").(UserClaim)
-	//_, err := h.svc.List(user.Id)
+	user := ctx.MustGet("user").(UserClaim)
+	arts, err := h.svc.List(ctx, user.Id, req.Page, req.PageSize)
 	// 不要在这里检测author了
 	// 可以认为，在handler不必处理业务逻辑
-	//if err != nil {
-	//	ctx.JSON(http.StatusOK, Result{
-	//		Code: 5,
-	//		Msg:  "帖子未找到",
-	//	})
-	//	h.l.Error("查询帖子错误",
-	//		logger.Int64("user_id", user.Id),
-	//		logger.Error(err))
-	//	return
-	//}
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "帖子未找到",
+		})
+		h.l.Error("查询帖子错误",
+			logger.Int64("user_id", user.Id),
+			logger.Error(err))
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{
+		Data: arts,
+	})
 }
 
 func (h *ArticleHandler) Withdraw(ctx *gin.Context) {
