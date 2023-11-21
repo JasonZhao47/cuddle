@@ -205,6 +205,120 @@ func (s *ArticleHandlerSuite) TestList() {
 	}
 }
 
+func (s *ArticleHandlerSuite) TestArticlePublish() {
+	t := s.T()
+	testCases := []struct {
+		name   string
+		req    Article
+		before func(t *testing.T)
+		after  func(t *testing.T)
+
+		wantCode   int
+		wantResult Result[int64]
+	}{
+		{
+			name: "新建并发布帖子",
+			req: Article{
+				Id:      1,
+				Topic:   "今天天气不错",
+				Content: "不错不错",
+				Author: Author{
+					Id: 15,
+				},
+			},
+			before: func(t *testing.T) {
+
+			},
+			after: func(t *testing.T) {
+				var art dao.Article
+				s.db.Where("id = ?", 1).First(&art)
+				assert.Equal(t, "Title for testing", art.Topic)
+				assert.Equal(t, "Content", art.Content)
+				assert.Equal(t, int64(15), art.AuthorId)
+				assert.True(t, art.CTime > 0)
+				assert.True(t, art.UTime > 0)
+			},
+			wantCode: 0,
+			wantResult: Result[int64]{
+				Data: 1,
+			},
+		},
+		{
+			name: "发布编辑过的帖子",
+			req: Article{
+				Id:      1,
+				Topic:   "今天天气不错",
+				Content: "不错不错",
+				Author: Author{
+					Id: 15,
+				},
+			},
+			before: func(t *testing.T) {
+
+			},
+			after: func(t *testing.T) {
+				var art dao.Article
+				s.db.Where("id = ?", 1).First(&art)
+				assert.Equal(t, "Title for testing", art.Topic)
+				assert.Equal(t, "Content", art.Content)
+				assert.Equal(t, int64(15), art.AuthorId)
+				assert.True(t, art.CTime > 0)
+				assert.True(t, art.UTime > 0)
+			},
+			wantCode: 0,
+			wantResult: Result[int64]{
+				Data: 1,
+			},
+		},
+		{
+			name: "发布别人创建的帖子，失败",
+			req: Article{
+				Id:      1,
+				Topic:   "我今天吃了安妮意大利餐厅",
+				Content: "披萨很好吃",
+				Author:  Author{Id: 1},
+			},
+			before: func(t *testing.T) {
+
+			},
+			after: func(t *testing.T) {
+				var art dao.Article
+				s.db.Where("id = ?", 1).First(&art)
+				assert.Equal(t, "Title for testing", art.Topic)
+				assert.Equal(t, "Content", art.Content)
+				assert.Equal(t, int64(15), art.AuthorId)
+				assert.True(t, art.CTime > 0)
+				assert.True(t, art.UTime > 0)
+			},
+			wantCode: 0,
+			wantResult: Result[int64]{
+				Data: 1,
+			},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.before(t)
+			data, err := json.Marshal(tc.req)
+			assert.NoError(t, err)
+			req, err := http.NewRequest(http.MethodPost, "/articles/publish", bytes.NewReader(data))
+			assert.NoError(t, err)
+			recorder := httptest.NewRecorder()
+			s.server.ServeHTTP(recorder, req)
+			code := recorder.Code
+			if code != http.StatusOK {
+				return
+			}
+			assert.Equal(t, tc.wantCode, code)
+			var result Result[int64]
+			err = json.Unmarshal(recorder.Body.Bytes(), &result)
+			assert.NoError(t, err)
+			assert.Equal(t, tc.wantResult, result)
+			tc.after(t)
+		})
+	}
+}
+
 func (s *ArticleHandlerSuite) TearDownTest() {
 	err := s.db.Exec("truncate table `articles`").Error
 	assert.NoError(s.T(), err)
