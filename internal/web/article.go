@@ -49,6 +49,7 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 		Id: req.Id,
 		// if a pointer is used to access a struct
 		// are all the sub structs also copied?
+		// yes
 		Author: domain.Author{
 			Id: uc.Id,
 		},
@@ -99,11 +100,12 @@ func (h *ArticleHandler) Detail(ctx *gin.Context) {
 	}
 	user := ctx.MustGet("user").(UserClaim)
 	if user.Id != article.Author.Id {
+		// bad intention
 		ctx.JSON(http.StatusOK, Result{
 			Code: 5,
 			Msg:  "系统错误",
 		})
-		h.l.Warn("用户id参数错误",
+		h.l.Warn("非法查询文章",
 			logger.Int64("user_id", user.Id),
 			logger.Int64("id", id))
 		return
@@ -114,7 +116,29 @@ func (h *ArticleHandler) Detail(ctx *gin.Context) {
 }
 
 func (h *ArticleHandler) List(ctx *gin.Context) {
-
+	type Req struct {
+		Page     int
+		PageSize int
+	}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	// 登陆态
+	//user := ctx.MustGet("user").(UserClaim)
+	//_, err := h.svc.List(user.Id)
+	// 不要在这里检测author了
+	// 可以认为，在handler不必处理业务逻辑
+	//if err != nil {
+	//	ctx.JSON(http.StatusOK, Result{
+	//		Code: 5,
+	//		Msg:  "帖子未找到",
+	//	})
+	//	h.l.Error("查询帖子错误",
+	//		logger.Int64("user_id", user.Id),
+	//		logger.Error(err))
+	//	return
+	//}
 }
 
 func (h *ArticleHandler) Withdraw(ctx *gin.Context) {

@@ -8,7 +8,9 @@ import (
 
 type ArticleService interface {
 	GetById(context.Context, int64) (*domain.Article, error)
+	// Save upsert语义
 	Save(context.Context, *domain.Article) (int64, error)
+	GetByAuthorId(ctx context.Context, authorId int64, page int, pageSize int) ([]*domain.Article, error)
 }
 
 type articleService struct {
@@ -33,4 +35,8 @@ func (svc *articleService) Save(ctx context.Context, art *domain.Article) (int64
 		return 0, err
 	}
 	return id, nil
+}
+
+func (svc *articleService) GetByAuthorId(ctx context.Context, authorId int64, page int, pageSize int) ([]*domain.Article, error) {
+	panic("Implement me")
 }

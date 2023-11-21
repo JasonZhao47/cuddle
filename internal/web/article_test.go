@@ -78,7 +78,6 @@ func TestArticleHandler_Detail(t *testing.T) {
 			recorder := httptest.NewRecorder()
 			req := tc.reqBuilder(t)
 
-			// implements the interface to response writer
 			server := gin.Default()
 			server.Use(func(c *gin.Context) {
 				c.Set("user", UserClaim{Id: 1}) // Set your user claim here
