@@ -71,7 +71,40 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 }
 
 func (h *ArticleHandler) Publish(ctx *gin.Context) {
-
+	// 不能修改别人的
+	// 登陆态
+	// 只能修改自己的
+	type Req struct {
+		Id      int64  `json:"id"`
+		Topic   string `json:"topic"`
+		Content string `json:"content"`
+	}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		h.l.Warn("发布失败，参数不对", logger.Int64("id", req.Id), logger.Error(err))
+		return
+	}
+	user := ctx.MustGet("user").(UserClaim)
+	id, err := h.svc.Publish(ctx, &domain.Article{
+		Id: req.Id,
+		Author: domain.Author{
+			Id: user.Id,
+		},
+		Topic:   req.Topic,
+		Content: req.Content,
+	})
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "发布失败",
+		})
+		h.l.Error("发布失败", logger.Int64("id", req.Id), logger.Error(err))
+		return
+	}
+	ctx.JSON(http.StatusOK, Result{
+		Data: id,
+	})
+	return
 }
 
 func (h *ArticleHandler) Detail(ctx *gin.Context) {

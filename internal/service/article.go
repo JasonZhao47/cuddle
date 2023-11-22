@@ -11,6 +11,8 @@ type ArticleService interface {
 	// Save upsert语义
 	Save(context.Context, *domain.Article) (int64, error)
 	List(ctx context.Context, authorId int64, page int, pageSize int) ([]*domain.Article, error)
+	// 操作的表不一样
+	Publish(context.Context, *domain.Article) (int64, error)
 }
 
 type articleService struct {
@@ -41,4 +43,8 @@ func (svc *articleService) Save(ctx context.Context, art *domain.Article) (int64
 
 func (svc *articleService) List(ctx context.Context, authorId int64, page int, pageSize int) ([]*domain.Article, error) {
 	return svc.repo.GetByAuthorId(ctx, authorId, page, pageSize)
+}
+
+func (svc *articleService) Publish(ctx context.Context, art *domain.Article) (int64, error) {
+	return svc.repo.Sync(ctx, art)
 }

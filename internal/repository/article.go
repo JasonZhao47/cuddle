@@ -11,6 +11,7 @@ type ArticleRepository interface {
 	GetById(context.Context, int64) (*domain.Article, error)
 	Insert(context.Context, *domain.Article) (int64, error)
 	GetByAuthorId(context.Context, int64, int, int) ([]*domain.Article, error)
+	Sync(context.Context, *domain.Article) (int64, error)
 }
 
 type articleRepository struct {
@@ -52,6 +53,11 @@ func (repo *articleRepository) GetByAuthorId(ctx context.Context, authorId int64
 	}
 
 	return res, err
+}
+
+func (repo *articleRepository) Sync(ctx context.Context, article *domain.Article) (int64, error) {
+	// dao同步数据
+	return repo.dao.Sync(ctx, repo.toEntity(article))
 }
 
 func (repo *articleRepository) toDomain(dao *dao.Article) *domain.Article {

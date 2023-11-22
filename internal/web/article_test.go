@@ -80,7 +80,7 @@ func TestArticleHandler_Detail(t *testing.T) {
 
 			server := gin.Default()
 			server.Use(func(c *gin.Context) {
-				c.Set("user", UserClaim{Id: 1}) // Set your user claim here
+				c.Set("user", UserClaim{Id: 1})
 				c.Next()
 			})
 			hdl.RegisterRoutes(server)
