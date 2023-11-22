@@ -75,7 +75,7 @@ func (h *ArticleHandler) Publish(ctx *gin.Context) {
 	// 登陆态
 	// 只能修改自己的
 	type Req struct {
-		Id      int64  `json:"id"`
+		Id      int64
 		Topic   string `json:"topic"`
 		Content string `json:"content"`
 	}

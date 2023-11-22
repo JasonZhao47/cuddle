@@ -69,6 +69,21 @@ func (mr *MockArticleServiceMockRecorder) List(ctx, authorId, page, pageSize any
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockArticleService)(nil).List), ctx, authorId, page, pageSize)
 }
 
+// Publish mocks base method.
+func (m *MockArticleService) Publish(arg0 context.Context, arg1 *domain.Article) (int64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Publish", arg0, arg1)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Publish indicates an expected call of Publish.
+func (mr *MockArticleServiceMockRecorder) Publish(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Publish", reflect.TypeOf((*MockArticleService)(nil).Publish), arg0, arg1)
+}
+
 // Save mocks base method.
 func (m *MockArticleService) Save(arg0 context.Context, arg1 *domain.Article) (int64, error) {
 	m.ctrl.T.Helper()
