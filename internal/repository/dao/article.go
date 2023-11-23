@@ -2,7 +2,9 @@ package dao
 
 import (
 	"context"
+	"errors"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"time"
 )
 
@@ -11,6 +13,7 @@ type ArticleDAO interface {
 	Insert(context.Context, *Article) (int64, error)
 	GetByAuthorId(context.Context, int64, int, int) ([]*Article, error)
 	Sync(context.Context, *Article) (int64, error)
+	UpdateById(context.Context, *Article) error
 }
 
 type ArticleGormDAO struct {
@@ -52,11 +55,14 @@ func (d *ArticleGormDAO) Sync(ctx context.Context, art *Article) (int64, error) 
 	// change the status to "published"
 	// transaction
 	var id = art.Id
-	art.Status = 1
 	err := d.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// upsert material db first
 		dao := NewArticleGormDAO(tx)
 		if id > 0 {
-			//dao.UpdateById(ctx, id)
+			err := dao.UpdateById(ctx, art)
+			if err != nil {
+				return err
+			}
 		} else {
 			id, err := dao.Insert(ctx, art)
 			if err != nil {
@@ -64,9 +70,56 @@ func (d *ArticleGormDAO) Sync(ctx context.Context, art *Article) (int64, error) 
 			}
 			art.Id = id
 		}
+		now := time.Now().UnixMilli()
+		pubArt := PublishedArticle{
+			Article: *art,
+		}
+		pubArt.CTime = now
+		pubArt.UTime = now
+		err := tx.Clauses(clause.OnConflict{
+			Columns: []clause.Column{
+				{Name: "id"},
+			},
+			DoUpdates: clause.Assignments(map[string]interface{}{
+				"topic":   pubArt.Topic,
+				"content": pubArt.Content,
+				"status":  pubArt.Status,
+				"utime":   now,
+			}),
+		}).Create(&pubArt).Error
+		if err != nil {
+			return err
+		}
 		return nil
 	})
 	return id, err
+}
+
+func (d *ArticleGormDAO) UpdateById(ctx context.Context, art *Article) error {
+	// update
+	// do we need a lock?
+	// pessimistic lock
+	// locks everything during operation
+	// FOR UPDATE
+	// or checks if there's a concurrency happening
+	// how?
+	now := time.Now().UnixMilli()
+	res := d.db.WithContext(ctx).Model(&art).
+		Where("id = ? AND author_id = ?", art.Id, art.AuthorId).
+		Updates(map[string]any{
+			"topic":   art.Topic,
+			"content": art.Content,
+			"status":  art.Status,
+			"utime":   now,
+		})
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		// possible attacker
+		return errors.New("ID不对或者作者不对")
+	}
+	return nil
 }
 
 type Article struct {
@@ -80,4 +133,8 @@ type Article struct {
 	Status uint8
 	CTime  int64
 	UTime  int64
+}
+
+type PublishedArticle struct {
+	Article
 }
