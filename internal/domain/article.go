@@ -12,9 +12,20 @@ type Article struct {
 	UTime   time.Time
 }
 
+const (
+	ArticleStatusUnknown = iota
+	ArticleStatusUnpublished
+	ArticleStatusPublished
+	ArticleStatusPrivate
+)
+
 type ArticleStatus uint8
 
 type Author struct {
 	Id   int64
 	Name string
+}
+
+func (s ArticleStatus) ToUint8() uint8 {
+	return uint8(s)
 }

@@ -81,7 +81,7 @@ func (repo *articleRepository) toEntity(art *domain.Article) *dao.Article {
 		Id:       art.Id,
 		AuthorId: art.Author.Id,
 		Topic:    art.Topic,
-		Status:   uint8(art.Status),
+		Status:   art.Status.ToUint8(),
 		Content:  art.Content,
 		CTime:    art.CTime.UnixMilli(),
 		UTime:    art.UTime.UnixMilli(),
