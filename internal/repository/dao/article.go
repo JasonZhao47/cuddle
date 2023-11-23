@@ -36,6 +36,7 @@ func (d *ArticleGormDAO) Insert(ctx context.Context, article *Article) (int64, e
 	now := time.Now().UnixMilli()
 	article.CTime = now
 	article.UTime = now
+	// insert - not upsert!
 	err := d.db.WithContext(ctx).Create(&article).Error
 	return article.Id, err
 }
