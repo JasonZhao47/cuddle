@@ -87,7 +87,7 @@ func (mr *MockArticleServiceMockRecorder) Publish(arg0, arg1 any) *gomock.Call {
 // Save mocks base method.
 func (m *MockArticleService) Save(arg0 context.Context, arg1 *domain.Article) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Insert", arg0, arg1)
+	ret := m.ctrl.Call(m, "Save", arg0, arg1)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -96,5 +96,5 @@ func (m *MockArticleService) Save(arg0 context.Context, arg1 *domain.Article) (i
 // Save indicates an expected call of Save.
 func (mr *MockArticleServiceMockRecorder) Save(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockArticleService)(nil).Save), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockArticleService)(nil).Save), arg0, arg1)
 }

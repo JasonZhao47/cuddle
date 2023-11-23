@@ -98,3 +98,17 @@ func (mr *MockArticleDAOMockRecorder) Sync(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sync", reflect.TypeOf((*MockArticleDAO)(nil).Sync), arg0, arg1)
 }
+
+// UpdateById mocks base method.
+func (m *MockArticleDAO) UpdateById(arg0 context.Context, arg1 *dao.Article) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateById", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateById indicates an expected call of UpdateById.
+func (mr *MockArticleDAOMockRecorder) UpdateById(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateById", reflect.TypeOf((*MockArticleDAO)(nil).UpdateById), arg0, arg1)
+}
