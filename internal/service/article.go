@@ -46,5 +46,6 @@ func (svc *articleService) List(ctx context.Context, authorId int64, page int, p
 }
 
 func (svc *articleService) Publish(ctx context.Context, art *domain.Article) (int64, error) {
+	art.Status = 1
 	return svc.repo.Sync(ctx, art)
 }

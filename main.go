@@ -50,7 +50,7 @@ func main() {
 //}
 
 func initViperV2() {
-	cfile := pflag.String("config", "config/dev.yaml", "path to config")
+	cfile := pflag.String("config", "configs/dev.yaml", "path to config")
 	pflag.Parse()
 	viper.SetConfigFile(*cfile)
 	err := viper.ReadInConfig()
