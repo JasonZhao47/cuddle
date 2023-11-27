@@ -3,6 +3,7 @@ package dao
 import (
 	"context"
 	"errors"
+	"github.com/jasonzhao47/cuddle/internal/domain"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"time"
@@ -14,6 +15,7 @@ type ArticleDAO interface {
 	GetByAuthorId(context.Context, int64, int, int) ([]*Article, error)
 	Sync(context.Context, *Article) (int64, error)
 	UpdateById(context.Context, *Article) error
+	SyncStatus(ctx context.Context, userId int64, artId int64, status domain.ArticleStatus) error
 }
 
 type ArticleGormDAO struct {
@@ -120,6 +122,29 @@ func (d *ArticleGormDAO) UpdateById(ctx context.Context, art *Article) error {
 		return errors.New("ID不对或者作者不对")
 	}
 	return nil
+}
+
+func (d *ArticleGormDAO) SyncStatus(ctx context.Context, userId int64, artId int64, status domain.ArticleStatus) error {
+	return d.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// simultaneously updates two tables
+		now := time.Now().UnixMilli()
+		res := tx.Model(&Article{}).
+			Where("id = ? AND author_id = ?", artId, userId).
+			Updates(map[string]any{
+				"utime":  now,
+				"status": status.ToUint8(),
+			})
+		if res.Error != nil {
+			return res.Error
+		}
+		if res.RowsAffected != 1 {
+			return errors.New("作者ID不对或者ID不对")
+		}
+		return tx.Model(&PublishedArticle{}).Where("id = ? AND author_id = ?", artId, userId).Updates(map[string]any{
+			"utime":  now,
+			"status": status.ToUint8(),
+		}).Error
+	})
 }
 
 type Article struct {

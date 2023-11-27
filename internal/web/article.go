@@ -178,5 +178,24 @@ func (h *ArticleHandler) List(ctx *gin.Context) {
 }
 
 func (h *ArticleHandler) Withdraw(ctx *gin.Context) {
-
+	type Req struct {
+		Id int64
+	}
+	var req Req
+	if err := ctx.Bind(&req); err != nil {
+		return
+	}
+	// 登录态
+	user := ctx.MustGet("user").(UserClaim)
+	err := h.svc.WithDraw(ctx, user.Id, req.Id)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "隐藏失败",
+		})
+		h.l.Error("隐藏帖子失败了", logger.Int64("user_id", user.Id),
+			logger.Int64("id", req.Id),
+			logger.Error(err))
+	}
+	ctx.JSON(http.StatusOK, Result{})
 }

@@ -13,6 +13,7 @@ type ArticleService interface {
 	List(ctx context.Context, authorId int64, page int, pageSize int) ([]*domain.Article, error)
 	// 操作的表不一样
 	Publish(context.Context, *domain.Article) (int64, error)
+	WithDraw(ctx context.Context, userId int64, artId int64) error
 }
 
 type articleService struct {
@@ -48,4 +49,8 @@ func (svc *articleService) List(ctx context.Context, authorId int64, page int, p
 func (svc *articleService) Publish(ctx context.Context, art *domain.Article) (int64, error) {
 	art.Status = domain.ArticleStatusPublished
 	return svc.repo.Sync(ctx, art)
+}
+
+func (svc *articleService) WithDraw(ctx context.Context, userId int64, artId int64) error {
+	return svc.repo.SyncStatus(ctx, userId, artId)
 }

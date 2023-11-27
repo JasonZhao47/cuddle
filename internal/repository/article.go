@@ -12,6 +12,7 @@ type ArticleRepository interface {
 	Insert(context.Context, *domain.Article) (int64, error)
 	GetByAuthorId(context.Context, int64, int, int) ([]*domain.Article, error)
 	Sync(context.Context, *domain.Article) (int64, error)
+	SyncStatus(context.Context, int64, int64, domain.ArticleStatus) error
 }
 
 type articleRepository struct {
@@ -58,6 +59,10 @@ func (repo *articleRepository) GetByAuthorId(ctx context.Context, authorId int64
 func (repo *articleRepository) Sync(ctx context.Context, article *domain.Article) (int64, error) {
 	// dao同步数据
 	return repo.dao.Sync(ctx, repo.toEntity(article))
+}
+
+func (repo *articleRepository) SyncStatus(ctx context.Context, userId int64, artId int64, status domain.ArticleStatus) error {
+	return repo.dao.SyncStatus(ctx, userId, artId, status)
 }
 
 func (repo *articleRepository) toDomain(dao *dao.Article) *domain.Article {
