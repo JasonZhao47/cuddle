@@ -46,9 +46,14 @@ func (d *ArticleGormDAO) Insert(ctx context.Context, article *Article) (int64, e
 	return article.Id, err
 }
 
-func (d *ArticleGormDAO) GetByAuthorId(ctx context.Context, authorId int64, page int, pageSize int) ([]*Article, error) {
+func (d *ArticleGormDAO) GetByAuthorId(ctx context.Context, authorId int64, limit int, offset int) ([]*Article, error) {
 	var arts []*Article
-	err := d.db.WithContext(ctx).Where("author_id = ?", authorId).Find(&arts).Error
+	err := d.db.WithContext(ctx).
+		Where("author_id = ?", authorId).
+		Offset(offset).
+		Limit(limit).
+		Order("utime DESC").
+		Find(&arts).Error
 	return arts, err
 }
 

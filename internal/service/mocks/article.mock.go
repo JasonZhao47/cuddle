@@ -98,3 +98,17 @@ func (mr *MockArticleServiceMockRecorder) Save(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Save", reflect.TypeOf((*MockArticleService)(nil).Save), arg0, arg1)
 }
+
+// WithDraw mocks base method.
+func (m *MockArticleService) WithDraw(ctx context.Context, userId, artId int64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithDraw", ctx, userId, artId)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// WithDraw indicates an expected call of WithDraw.
+func (mr *MockArticleServiceMockRecorder) WithDraw(ctx, userId, artId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithDraw", reflect.TypeOf((*MockArticleService)(nil).WithDraw), ctx, userId, artId)
+}

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"github.com/ecodeclub/ekit/slice"
 	"github.com/jasonzhao47/cuddle/internal/domain"
 	"github.com/jasonzhao47/cuddle/internal/repository/dao"
 	"time"
@@ -42,16 +43,15 @@ func (repo *articleRepository) Insert(ctx context.Context, article *domain.Artic
 	return id, nil
 }
 
-func (repo *articleRepository) GetByAuthorId(ctx context.Context, authorId int64, page int, pageSize int) ([]*domain.Article, error) {
-	arts, err := repo.dao.GetByAuthorId(ctx, authorId, page, pageSize)
+func (repo *articleRepository) GetByAuthorId(ctx context.Context, authorId int64, limit int, offset int) ([]*domain.Article, error) {
+	arts, err := repo.dao.GetByAuthorId(ctx, authorId, limit, offset)
 	if err != nil {
 		return []*domain.Article{}, err
 	}
 
-	res := make([]*domain.Article, len(arts))
-	for i := range arts {
-		res[i] = repo.toDomain(arts[i])
-	}
+	res := slice.Map[*dao.Article, *domain.Article](arts, func(idx int, src *dao.Article) *domain.Article {
+		return repo.toDomain(src)
+	})
 
 	return res, err
 }

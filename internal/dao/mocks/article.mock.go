@@ -12,6 +12,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	domain "github.com/jasonzhao47/cuddle/internal/domain"
 	dao "github.com/jasonzhao47/cuddle/internal/repository/dao"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -97,6 +98,20 @@ func (m *MockArticleDAO) Sync(arg0 context.Context, arg1 *dao.Article) (int64, e
 func (mr *MockArticleDAOMockRecorder) Sync(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sync", reflect.TypeOf((*MockArticleDAO)(nil).Sync), arg0, arg1)
+}
+
+// SyncStatus mocks base method.
+func (m *MockArticleDAO) SyncStatus(ctx context.Context, userId, artId int64, status domain.ArticleStatus) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SyncStatus", ctx, userId, artId, status)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SyncStatus indicates an expected call of SyncStatus.
+func (mr *MockArticleDAOMockRecorder) SyncStatus(ctx, userId, artId, status any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SyncStatus", reflect.TypeOf((*MockArticleDAO)(nil).SyncStatus), ctx, userId, artId, status)
 }
 
 // UpdateById mocks base method.

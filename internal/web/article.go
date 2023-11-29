@@ -150,8 +150,8 @@ func (h *ArticleHandler) Detail(ctx *gin.Context) {
 
 func (h *ArticleHandler) List(ctx *gin.Context) {
 	type Req struct {
-		Page     int
-		PageSize int
+		Limit  int
+		Offset int
 	}
 	var req Req
 	if err := ctx.Bind(&req); err != nil {
@@ -159,7 +159,7 @@ func (h *ArticleHandler) List(ctx *gin.Context) {
 	}
 	// 登陆态
 	user := ctx.MustGet("user").(UserClaim)
-	arts, err := h.svc.List(ctx, user.Id, req.Page, req.PageSize)
+	arts, err := h.svc.List(ctx, user.Id, req.Limit, req.Offset)
 	// 不要在这里检测author了
 	// 可以认为，在handler不必处理业务逻辑
 	if err != nil {

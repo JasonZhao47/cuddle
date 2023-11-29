@@ -10,7 +10,7 @@ type ArticleService interface {
 	GetById(context.Context, int64) (*domain.Article, error)
 	// Save upsert语义
 	Save(context.Context, *domain.Article) (int64, error)
-	List(ctx context.Context, authorId int64, page int, pageSize int) ([]*domain.Article, error)
+	List(ctx context.Context, authorId int64, limit int, offset int) ([]*domain.Article, error)
 	// 操作的表不一样
 	Publish(context.Context, *domain.Article) (int64, error)
 	WithDraw(ctx context.Context, userId int64, artId int64) error
@@ -42,8 +42,8 @@ func (svc *articleService) Save(ctx context.Context, art *domain.Article) (int64
 	return id, nil
 }
 
-func (svc *articleService) List(ctx context.Context, authorId int64, page int, pageSize int) ([]*domain.Article, error) {
-	return svc.repo.GetByAuthorId(ctx, authorId, page, pageSize)
+func (svc *articleService) List(ctx context.Context, authorId int64, limit int, offset int) ([]*domain.Article, error) {
+	return svc.repo.GetByAuthorId(ctx, authorId, limit, offset)
 }
 
 func (svc *articleService) Publish(ctx context.Context, art *domain.Article) (int64, error) {
@@ -52,5 +52,5 @@ func (svc *articleService) Publish(ctx context.Context, art *domain.Article) (in
 }
 
 func (svc *articleService) WithDraw(ctx context.Context, userId int64, artId int64) error {
-	return svc.repo.SyncStatus(ctx, userId, artId)
+	return svc.repo.SyncStatus(ctx, userId, artId, domain.ArticleStatusPrivate)
 }
