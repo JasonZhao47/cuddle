@@ -12,6 +12,16 @@ type Article struct {
 	UTime   time.Time
 }
 
+func (a Article) Abstract() string {
+	var abstractLimit = 140
+	// rune counts non-ascii chars as 1, bytes won't
+	str := []rune(a.Content)
+	if len(str) > abstractLimit {
+		str = str[:abstractLimit]
+	}
+	return string(str)
+}
+
 const (
 	ArticleStatusUnknown = iota
 	ArticleStatusUnpublished

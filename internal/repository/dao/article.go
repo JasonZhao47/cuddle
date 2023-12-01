@@ -10,11 +10,11 @@ import (
 )
 
 type ArticleDAO interface {
-	GetById(context.Context, int64) (*Article, error)
-	Insert(context.Context, *Article) (int64, error)
-	GetByAuthorId(context.Context, int64, int, int) ([]*Article, error)
-	Sync(context.Context, *Article) (int64, error)
-	UpdateById(context.Context, *Article) error
+	GetById(context.Context, int64) (Article, error)
+	Insert(context.Context, Article) (int64, error)
+	GetByAuthorId(context.Context, int64, int, int) ([]Article, error)
+	Sync(context.Context, Article) (int64, error)
+	UpdateById(context.Context, Article) error
 	SyncStatus(ctx context.Context, userId int64, artId int64, status domain.ArticleStatus) error
 }
 
@@ -28,16 +28,16 @@ func NewArticleGormDAO(db *gorm.DB) ArticleDAO {
 	}
 }
 
-func (d *ArticleGormDAO) GetById(ctx context.Context, id int64) (*Article, error) {
-	var art *Article
+func (d *ArticleGormDAO) GetById(ctx context.Context, id int64) (Article, error) {
+	var art Article
 	err := d.db.WithContext(ctx).Where("id = ?", id).First(&art).Error
 	if err != nil {
-		return nil, err
+		return art, err
 	}
 	return art, err
 }
 
-func (d *ArticleGormDAO) Insert(ctx context.Context, article *Article) (int64, error) {
+func (d *ArticleGormDAO) Insert(ctx context.Context, article Article) (int64, error) {
 	now := time.Now().UnixMilli()
 	article.CTime = now
 	article.UTime = now
@@ -46,8 +46,8 @@ func (d *ArticleGormDAO) Insert(ctx context.Context, article *Article) (int64, e
 	return article.Id, err
 }
 
-func (d *ArticleGormDAO) GetByAuthorId(ctx context.Context, authorId int64, limit int, offset int) ([]*Article, error) {
-	var arts []*Article
+func (d *ArticleGormDAO) GetByAuthorId(ctx context.Context, authorId int64, limit int, offset int) ([]Article, error) {
+	var arts []Article
 	err := d.db.WithContext(ctx).
 		Where("author_id = ?", authorId).
 		Offset(offset).
@@ -57,7 +57,7 @@ func (d *ArticleGormDAO) GetByAuthorId(ctx context.Context, authorId int64, limi
 	return arts, err
 }
 
-func (d *ArticleGormDAO) Sync(ctx context.Context, art *Article) (int64, error) {
+func (d *ArticleGormDAO) Sync(ctx context.Context, art Article) (int64, error) {
 	// check art's status
 	// change the status to "published"
 	// transaction
@@ -79,7 +79,7 @@ func (d *ArticleGormDAO) Sync(ctx context.Context, art *Article) (int64, error) 
 		}
 		now := time.Now().UnixMilli()
 		pubArt := PublishedArticle{
-			Article: *art,
+			Article: art,
 		}
 		pubArt.CTime = now
 		pubArt.UTime = now
@@ -102,7 +102,7 @@ func (d *ArticleGormDAO) Sync(ctx context.Context, art *Article) (int64, error) 
 	return id, err
 }
 
-func (d *ArticleGormDAO) UpdateById(ctx context.Context, art *Article) error {
+func (d *ArticleGormDAO) UpdateById(ctx context.Context, art Article) error {
 	// update
 	// do we need a lock?
 	// pessimistic lock
