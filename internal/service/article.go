@@ -43,7 +43,7 @@ func (svc *articleService) Save(ctx context.Context, art *domain.Article) (int64
 }
 
 func (svc *articleService) List(ctx context.Context, authorId int64, limit int, offset int) ([]*domain.Article, error) {
-	return svc.repo.GetByAuthorId(ctx, authorId, limit, offset)
+	return svc.repo.GetByAuthor(ctx, authorId, limit, offset)
 }
 
 func (svc *articleService) Publish(ctx context.Context, art *domain.Article) (int64, error) {

@@ -2,31 +2,39 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"github.com/ecodeclub/ekit/slice"
 	"github.com/jasonzhao47/cuddle/internal/domain"
+	"github.com/jasonzhao47/cuddle/internal/repository/cache"
 	"github.com/jasonzhao47/cuddle/internal/repository/dao"
 	"time"
+)
+
+var (
+	ErrIllegalOffsetOrLimit = errors.New("非法偏移量")
 )
 
 type ArticleRepository interface {
 	GetById(context.Context, int64) (*domain.Article, error)
 	Insert(context.Context, *domain.Article) (int64, error)
-	GetByAuthorId(context.Context, int64, int, int) ([]*domain.Article, error)
+	GetByAuthor(context.Context, int64, int, int) ([]*domain.Article, error)
 	Sync(context.Context, *domain.Article) (int64, error)
 	SyncStatus(context.Context, int64, int64, domain.ArticleStatus) error
 }
 
-type articleRepository struct {
-	dao dao.ArticleDAO
+type CachedArticleRepository struct {
+	dao   dao.ArticleDAO
+	cache cache.ArticleCache
 }
 
-func NewArticleRepository(dao dao.ArticleDAO) ArticleRepository {
-	return &articleRepository{
-		dao: dao,
+func NewArticleRepository(dao dao.ArticleDAO, cache cache.ArticleCache) ArticleRepository {
+	return &CachedArticleRepository{
+		dao:   dao,
+		cache: cache,
 	}
 }
 
-func (repo *articleRepository) GetById(ctx context.Context, id int64) (*domain.Article, error) {
+func (repo *CachedArticleRepository) GetById(ctx context.Context, id int64) (*domain.Article, error) {
 	// need to add cache here
 	art, err := repo.dao.GetById(ctx, id)
 	if err != nil {
@@ -35,7 +43,7 @@ func (repo *articleRepository) GetById(ctx context.Context, id int64) (*domain.A
 	return repo.toDomain(art), nil
 }
 
-func (repo *articleRepository) Insert(ctx context.Context, article *domain.Article) (int64, error) {
+func (repo *CachedArticleRepository) Insert(ctx context.Context, article *domain.Article) (int64, error) {
 	id, err := repo.dao.Insert(ctx, repo.toEntity(article))
 	if err != nil {
 		return article.Id, err
@@ -43,29 +51,51 @@ func (repo *articleRepository) Insert(ctx context.Context, article *domain.Artic
 	return id, nil
 }
 
-func (repo *articleRepository) GetByAuthorId(ctx context.Context, authorId int64, limit int, offset int) ([]*domain.Article, error) {
+func (repo *CachedArticleRepository) GetByAuthor(ctx context.Context, authorId int64, limit int, offset int) ([]*domain.Article, error) {
+	// handle when offset is not legal
+	var res []*domain.Article
+	if limit < 0 || offset < 0 {
+		return res, ErrIllegalOffsetOrLimit
+	}
+	if limit == 0 && offset <= 100 {
+		// cached range
+		res, err := repo.cache.GetFirstPage(ctx, authorId)
+		if err != nil {
+			// log here
+		}
+		return res, nil
+	}
 	arts, err := repo.dao.GetByAuthorId(ctx, authorId, limit, offset)
 	if err != nil {
-		return []*domain.Article{}, err
+		return res, err
 	}
-
-	res := slice.Map[*dao.Article, *domain.Article](arts, func(idx int, src *dao.Article) *domain.Article {
+	res = slice.Map[*dao.Article, *domain.Article](arts, func(idx int, src *dao.Article) *domain.Article {
 		return repo.toDomain(src)
 	})
+
+	// 不能简单同步处理
+	// 过段时间要取消掉
+	//go func() {
+	//	ctx.Err()
+	//}()
+	err = repo.cache.SetFirstPage(res)
+	if err != nil {
+		return res, err
+	}
 
 	return res, err
 }
 
-func (repo *articleRepository) Sync(ctx context.Context, article *domain.Article) (int64, error) {
+func (repo *CachedArticleRepository) Sync(ctx context.Context, article *domain.Article) (int64, error) {
 	// dao同步数据
 	return repo.dao.Sync(ctx, repo.toEntity(article))
 }
 
-func (repo *articleRepository) SyncStatus(ctx context.Context, userId int64, artId int64, status domain.ArticleStatus) error {
+func (repo *CachedArticleRepository) SyncStatus(ctx context.Context, userId int64, artId int64, status domain.ArticleStatus) error {
 	return repo.dao.SyncStatus(ctx, userId, artId, status)
 }
 
-func (repo *articleRepository) toDomain(dao *dao.Article) *domain.Article {
+func (repo *CachedArticleRepository) toDomain(dao *dao.Article) *domain.Article {
 	return &domain.Article{
 		Id: dao.Id,
 		Author: domain.Author{
@@ -81,7 +111,7 @@ func (repo *articleRepository) toDomain(dao *dao.Article) *domain.Article {
 	}
 }
 
-func (repo *articleRepository) toEntity(art *domain.Article) *dao.Article {
+func (repo *CachedArticleRepository) toEntity(art *domain.Article) *dao.Article {
 	return &dao.Article{
 		Id:       art.Id,
 		AuthorId: art.Author.Id,

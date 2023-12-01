@@ -25,6 +25,7 @@ func InitWebServer() *gin.Engine {
 		// cache
 		cache.NewRedisUserCache,
 		cache.NewRedisCodeCache,
+		cache.NewArticleCache,
 		// repository
 		repository.NewCacheUserRepository,
 		repository.NewCodeRepository,
