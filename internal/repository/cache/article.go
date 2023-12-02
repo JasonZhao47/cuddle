@@ -12,6 +12,7 @@ import (
 type ArticleCache interface {
 	SetFirstPage(ctx context.Context, arts []domain.Article, authorId int64) error
 	GetFirstPage(ctx context.Context, authorId int64) ([]domain.Article, error)
+	EraseFirstPage(ctx context.Context, authorId int64) error
 }
 
 type articleCache struct {
@@ -51,6 +52,10 @@ func (a *articleCache) SetFirstPage(ctx context.Context, arts []domain.Article, 
 		return err
 	}
 	return nil
+}
+
+func (a *articleCache) EraseFirstPage(ctx context.Context, authorId int64) error {
+	return a.client.Del(ctx, a.firstPageKey(authorId)).Err()
 }
 
 func (a *articleCache) firstPageKey(uid int64) string {

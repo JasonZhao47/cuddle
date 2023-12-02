@@ -45,10 +45,14 @@ func (repo *CachedArticleRepository) GetById(ctx context.Context, id int64) (dom
 
 func (repo *CachedArticleRepository) Insert(ctx context.Context, article domain.Article) (int64, error) {
 	id, err := repo.dao.Insert(ctx, repo.toEntity(article))
-	if err != nil {
-		return article.Id, err
+	if err == nil {
+		err = repo.cache.EraseFirstPage(ctx, article.Author.Id)
+		// need to add cache here
+		if err != nil {
+			// log here?
+		}
 	}
-	return id, nil
+	return id, err
 }
 
 func (repo *CachedArticleRepository) GetByAuthor(ctx context.Context, authorId int64, limit int, offset int) ([]domain.Article, error) {
@@ -75,24 +79,48 @@ func (repo *CachedArticleRepository) GetByAuthor(ctx context.Context, authorId i
 
 	// 不能简单同步处理
 	// 过段时间要取消掉
-	//go func() {
-	//	ctx.Err()
-	//}()
-	err = repo.cache.SetFirstPage(ctx, res, authorId)
-	if err != nil {
-		return res, err
-	}
-
-	return res, err
+	// 回写缓存错误不是重要的错误
+	// 那么我们异步处理也可以
+	go func() {
+		if limit == 0 && offset <= 100 {
+			err = repo.cache.SetFirstPage(ctx, res, authorId)
+			if err != nil {
+				// log here
+			}
+		}
+	}()
+	return res, nil
 }
 
 func (repo *CachedArticleRepository) Sync(ctx context.Context, article domain.Article) (int64, error) {
 	// dao同步数据
-	return repo.dao.Sync(ctx, repo.toEntity(article))
+	// need to erase cache here
+	id, err := repo.dao.Sync(ctx, repo.toEntity(article))
+	if err == nil {
+		// clear cache here
+		err = repo.cache.EraseFirstPage(ctx, article.Author.Id)
+		if err != nil {
+			// log here?
+		}
+	}
+	// 异步设置缓存
+	//go func() {
+	//
+	//}
+	return id, err
 }
 
 func (repo *CachedArticleRepository) SyncStatus(ctx context.Context, userId int64, artId int64, status domain.ArticleStatus) error {
-	return repo.dao.SyncStatus(ctx, userId, artId, status)
+	// need to erase cache here
+	err := repo.dao.SyncStatus(ctx, userId, artId, status)
+	if err == nil {
+		// clear cache here
+		err = repo.cache.EraseFirstPage(ctx, artId)
+		if err != nil {
+			// log here?
+		}
+	}
+	return err
 }
 
 func (repo *CachedArticleRepository) toDomain(dao dao.Article) domain.Article {
