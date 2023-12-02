@@ -45,7 +45,7 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 	// 登陆态
 	uc := ctx.MustGet("user").(UserClaim)
 	// 为什么需要id?
-	id, err := h.svc.Save(ctx, &domain.Article{
+	id, err := h.svc.Save(ctx, domain.Article{
 		Id: req.Id,
 		// if a pointer is used to access a struct
 		// are all the sub structs also copied?
@@ -85,7 +85,7 @@ func (h *ArticleHandler) Publish(ctx *gin.Context) {
 		return
 	}
 	user := ctx.MustGet("user").(UserClaim)
-	id, err := h.svc.Publish(ctx, &domain.Article{
+	id, err := h.svc.Publish(ctx, domain.Article{
 		Id: req.Id,
 		Author: domain.Author{
 			Id: user.Id,
