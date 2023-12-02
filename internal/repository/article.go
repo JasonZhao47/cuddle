@@ -89,6 +89,9 @@ func (repo *CachedArticleRepository) GetByAuthor(ctx context.Context, authorId i
 			}
 		}
 	}()
+	go func() {
+		repo.preCache(ctx, res)
+	}()
 	return res, nil
 }
 
@@ -148,5 +151,14 @@ func (repo *CachedArticleRepository) toEntity(art domain.Article) dao.Article {
 		Content:  art.Content,
 		CTime:    art.CTime.UnixMilli(),
 		UTime:    art.UTime.UnixMilli(),
+	}
+}
+
+func (repo *CachedArticleRepository) preCache(ctx context.Context, arts []domain.Article) {
+	const contentSizeThreshold = 1024 * 1024
+	if len(arts) > 0 && len(arts[0].Content) <= contentSizeThreshold {
+		if err := repo.cache.Set(ctx, arts[0]); err != nil {
+			// log here
+		}
 	}
 }

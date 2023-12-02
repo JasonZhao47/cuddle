@@ -13,6 +13,7 @@ type ArticleCache interface {
 	SetFirstPage(ctx context.Context, arts []domain.Article, authorId int64) error
 	GetFirstPage(ctx context.Context, authorId int64) ([]domain.Article, error)
 	EraseFirstPage(ctx context.Context, authorId int64) error
+	Set(ctx context.Context, art domain.Article) error
 }
 
 type articleCache struct {
@@ -21,6 +22,15 @@ type articleCache struct {
 
 func NewArticleCache(cmd redis.Cmdable) ArticleCache {
 	return &articleCache{client: cmd}
+}
+
+func (a *articleCache) Set(ctx context.Context, art domain.Article) error {
+
+	data, err := json.Marshal(art)
+	if err != nil {
+		return err
+	}
+	return a.client.Set(ctx, a.authorArtKey(art.Id), data, time.Minute*10).Err()
 }
 
 func (a *articleCache) GetFirstPage(ctx context.Context, authorId int64) ([]domain.Article, error) {
@@ -60,4 +70,8 @@ func (a *articleCache) EraseFirstPage(ctx context.Context, authorId int64) error
 
 func (a *articleCache) firstPageKey(uid int64) string {
 	return fmt.Sprintf("article_cache:first_page:%d", uid)
+}
+
+func (a *articleCache) authorArtKey(uid int64) string {
+	return fmt.Sprintf("article_cache:author_art:%d", uid)
 }

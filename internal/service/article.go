@@ -7,12 +7,12 @@ import (
 )
 
 type ArticleService interface {
-	GetById(context.Context, int64) (*domain.Article, error)
+	GetById(context.Context, int64) (domain.Article, error)
 	// Save upsert语义
-	Save(context.Context, *domain.Article) (int64, error)
-	List(ctx context.Context, authorId int64, limit int, offset int) ([]*domain.Article, error)
+	Save(context.Context, domain.Article) (int64, error)
+	List(ctx context.Context, authorId int64, limit int, offset int) ([]domain.Article, error)
 	// 操作的表不一样
-	Publish(context.Context, *domain.Article) (int64, error)
+	Publish(context.Context, domain.Article) (int64, error)
 	WithDraw(ctx context.Context, userId int64, artId int64) error
 }
 
@@ -24,15 +24,15 @@ func NewArticleService(repo repository.ArticleRepository) ArticleService {
 	return &articleService{repo: repo}
 }
 
-func (svc *articleService) GetById(ctx context.Context, id int64) (*domain.Article, error) {
+func (svc *articleService) GetById(ctx context.Context, id int64) (domain.Article, error) {
 	art, err := svc.repo.GetById(ctx, id)
 	if err != nil {
-		return nil, err
+		return domain.Article{}, err
 	}
 	return art, nil
 }
 
-func (svc *articleService) Save(ctx context.Context, art *domain.Article) (int64, error) {
+func (svc *articleService) Save(ctx context.Context, art domain.Article) (int64, error) {
 	// upsert, so
 	// id is used to identify which case
 	id, err := svc.repo.Insert(ctx, art)
@@ -42,11 +42,11 @@ func (svc *articleService) Save(ctx context.Context, art *domain.Article) (int64
 	return id, nil
 }
 
-func (svc *articleService) List(ctx context.Context, authorId int64, limit int, offset int) ([]*domain.Article, error) {
+func (svc *articleService) List(ctx context.Context, authorId int64, limit int, offset int) ([]domain.Article, error) {
 	return svc.repo.GetByAuthor(ctx, authorId, limit, offset)
 }
 
-func (svc *articleService) Publish(ctx context.Context, art *domain.Article) (int64, error) {
+func (svc *articleService) Publish(ctx context.Context, art domain.Article) (int64, error) {
 	art.Status = domain.ArticleStatusPublished
 	return svc.repo.Sync(ctx, art)
 }
