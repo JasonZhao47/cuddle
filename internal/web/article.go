@@ -30,6 +30,10 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 		ug.POST("/list", h.List)
 		ug.POST("/withdraw", h.Withdraw)
 	}
+	pub := server.Group("/pub")
+	{
+		pub.GET("/detail", h.PubDetail)
+	}
 }
 
 func (h *ArticleHandler) Edit(ctx *gin.Context) {
@@ -116,7 +120,7 @@ func (h *ArticleHandler) Detail(ctx *gin.Context) {
 			Msg:  "id参数错误",
 		})
 		h.l.Warn("查询帖子失败，id格式不对",
-			logger.Int64("id", id),
+			logger.String("id", idStr),
 			logger.Error(err))
 		return
 	}
@@ -198,4 +202,33 @@ func (h *ArticleHandler) Withdraw(ctx *gin.Context) {
 			logger.Error(err))
 	}
 	ctx.JSON(http.StatusOK, Result{})
+}
+
+func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 4,
+			Msg:  "id参数错误",
+		})
+		h.l.Warn("查询帖子失败，id不对",
+			logger.String("id", idStr),
+			logger.Error(err))
+		return
+	}
+	// 不需要登录就可以看
+	art, err := h.svc.GetPubById(ctx, id)
+	if err != nil {
+		ctx.JSON(http.StatusOK, Result{
+			Code: 5,
+			Msg:  "查看失败",
+		})
+		h.l.Error("查看帖子失败了",
+			logger.String("id", idStr),
+			logger.Error(err))
+	}
+	ctx.JSON(http.StatusOK, Result{
+		Data: art,
+	})
 }

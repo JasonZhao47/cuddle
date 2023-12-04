@@ -20,6 +20,7 @@ type ArticleRepository interface {
 	GetByAuthor(context.Context, int64, int, int) ([]domain.Article, error)
 	Sync(context.Context, domain.Article) (int64, error)
 	SyncStatus(context.Context, int64, int64, domain.ArticleStatus) error
+	GetPubById(context.Context, int64) (domain.PublishedArticle, error)
 }
 
 type CachedArticleRepository struct {
@@ -36,11 +37,24 @@ func NewArticleRepository(dao dao.ArticleDAO, cache cache.ArticleCache) ArticleR
 
 func (repo *CachedArticleRepository) GetById(ctx context.Context, id int64) (domain.Article, error) {
 	// need to add cache here
+	res, err := repo.cache.Get(ctx, id)
+	if err == nil {
+		return res, nil
+	}
 	art, err := repo.dao.GetById(ctx, id)
 	if err != nil {
 		return domain.Article{}, err
 	}
-	return repo.toDomain(art), nil
+	s := repo.toDomain(art)
+	// 设置缓存不是主要逻辑
+	// 可以放在线程里面做
+	go func() {
+		err = repo.cache.Set(ctx, s)
+		if err != nil {
+			// log here
+		}
+	}()
+	return s, nil
 }
 
 func (repo *CachedArticleRepository) Insert(ctx context.Context, article domain.Article) (int64, error) {
@@ -64,10 +78,11 @@ func (repo *CachedArticleRepository) GetByAuthor(ctx context.Context, authorId i
 	if limit == 0 && offset <= 100 {
 		// cached range
 		res, err := repo.cache.GetFirstPage(ctx, authorId)
-		if err != nil {
+		if err == nil {
+			return res, nil
+		} else {
 			// log here
 		}
-		return res, nil
 	}
 	arts, err := repo.dao.GetByAuthorId(ctx, authorId, limit, offset)
 	if err != nil {
@@ -126,8 +141,45 @@ func (repo *CachedArticleRepository) SyncStatus(ctx context.Context, userId int6
 	return err
 }
 
+func (repo *CachedArticleRepository) GetPubById(ctx context.Context, id int64) (domain.PublishedArticle, error) {
+	// get cache of first page
+	res, err := repo.cache.GetPub(ctx, id)
+	if err == nil {
+		return res, nil
+	}
+	// log here to indicate cache miss
+	art, err := repo.dao.GetByPublishedId(ctx, id)
+	if err != nil {
+		return domain.PublishedArticle{}, nil
+	}
+	s := repo.toPublishedDomain(art)
+	go func() {
+		err = repo.cache.SetPub(ctx, s)
+		if err != nil {
+			// log here
+		}
+	}()
+	return s, nil
+}
+
 func (repo *CachedArticleRepository) toDomain(dao dao.Article) domain.Article {
 	return domain.Article{
+		Id: dao.Id,
+		Author: domain.Author{
+			Id: dao.AuthorId,
+			// what about author name?
+			// join?
+		},
+		Topic:   dao.Topic,
+		Status:  domain.ArticleStatus(dao.Status),
+		Content: dao.Content,
+		CTime:   time.UnixMilli(dao.CTime),
+		UTime:   time.UnixMilli(dao.UTime),
+	}
+}
+
+func (repo *CachedArticleRepository) toPublishedDomain(dao dao.PublishedArticle) domain.PublishedArticle {
+	return domain.PublishedArticle{
 		Id: dao.Id,
 		Author: domain.Author{
 			Id: dao.AuthorId,
@@ -156,6 +208,7 @@ func (repo *CachedArticleRepository) toEntity(art domain.Article) dao.Article {
 
 func (repo *CachedArticleRepository) preCache(ctx context.Context, arts []domain.Article) {
 	const contentSizeThreshold = 1024 * 1024
+	// 方案：提前缓存好某几个条目
 	if len(arts) > 0 && len(arts[0].Content) <= contentSizeThreshold {
 		if err := repo.cache.Set(ctx, arts[0]); err != nil {
 			// log here

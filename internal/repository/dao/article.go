@@ -11,6 +11,7 @@ import (
 
 type ArticleDAO interface {
 	GetById(context.Context, int64) (Article, error)
+	GetByPublishedId(context.Context, int64) (PublishedArticle, error)
 	Insert(context.Context, Article) (int64, error)
 	GetByAuthorId(context.Context, int64, int, int) ([]Article, error)
 	Sync(context.Context, Article) (int64, error)
@@ -55,6 +56,12 @@ func (d *ArticleGormDAO) GetByAuthorId(ctx context.Context, authorId int64, limi
 		Order("utime DESC").
 		Find(&arts).Error
 	return arts, err
+}
+
+func (d *ArticleGormDAO) GetByPublishedId(ctx context.Context, id int64) (PublishedArticle, error) {
+	var art PublishedArticle
+	err := d.db.WithContext(ctx).Where("id = ?", id).First(&art).Error
+	return art, err
 }
 
 func (d *ArticleGormDAO) Sync(ctx context.Context, art Article) (int64, error) {

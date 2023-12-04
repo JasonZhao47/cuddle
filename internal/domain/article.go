@@ -39,3 +39,5 @@ type Author struct {
 func (s ArticleStatus) ToUint8() uint8 {
 	return uint8(s)
 }
+
+type PublishedArticle Article

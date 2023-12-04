@@ -14,6 +14,7 @@ type ArticleService interface {
 	// 操作的表不一样
 	Publish(context.Context, domain.Article) (int64, error)
 	WithDraw(ctx context.Context, userId int64, artId int64) error
+	GetPubById(ctx context.Context, artId int64) (domain.PublishedArticle, error)
 }
 
 type articleService struct {
@@ -53,4 +54,8 @@ func (svc *articleService) Publish(ctx context.Context, art domain.Article) (int
 
 func (svc *articleService) WithDraw(ctx context.Context, userId int64, artId int64) error {
 	return svc.repo.SyncStatus(ctx, userId, artId, domain.ArticleStatusPrivate)
+}
+
+func (svc *articleService) GetPubById(ctx context.Context, artId int64) (domain.PublishedArticle, error) {
+	return svc.repo.GetPubById(ctx, artId)
 }
