@@ -10,3 +10,4 @@ docker:
 mock:
 	@mockgen -source=internal/service/article.go -destination=internal/service/mocks/article.mock.go -package=svcmock
 	@mockgen -source=internal/repository/dao/article.go -destination=internal/dao/mocks/article.mock.go -package=daomock
+	@mockgen -source=internal/service/user_activity.go -destination=internal/service/mocks/user_activity.mock.go -package=svcmock

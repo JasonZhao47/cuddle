@@ -10,14 +10,18 @@ import (
 )
 
 type ArticleHandler struct {
-	svc service.ArticleService
-	l   logger.Logger
+	svc        service.ArticleService
+	userActSvc service.UserActivityService
+	l          logger.Logger
+	biz        string
 }
 
-func NewArticleHandler(svc service.ArticleService, l logger.Logger) *ArticleHandler {
+func NewArticleHandler(svc service.ArticleService, userActSvc service.UserActivityService, l logger.Logger) *ArticleHandler {
 	return &ArticleHandler{
-		svc: svc,
-		l:   l,
+		svc:        svc,
+		userActSvc: userActSvc,
+		l:          l,
+		biz:        "article",
 	}
 }
 
@@ -226,6 +230,15 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 		})
 		h.l.Error("查看帖子失败了",
 			logger.String("id", idStr),
+			logger.Error(err))
+	}
+	// 在这增加阅读数
+	err = h.userActSvc.IncrRead(ctx, h.biz, art.Id)
+	if err != nil {
+		h.l.Error("阅读量增加失败了",
+			logger.String("id", idStr),
+			logger.String("biz", "pub"),
+			logger.Int64("biz_id", 1),
 			logger.Error(err))
 	}
 	ctx.JSON(http.StatusOK, Result{

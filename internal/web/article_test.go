@@ -19,7 +19,7 @@ import (
 func TestArticleHandler_Detail(t *testing.T) {
 	testCases := []struct {
 		name       string
-		mock       func(*gomock.Controller) service.ArticleService
+		mock       func(*gomock.Controller) (service.ArticleService, service.UserActivityService)
 		reqBuilder func(*testing.T) *http.Request
 
 		wantCode int
@@ -27,14 +27,15 @@ func TestArticleHandler_Detail(t *testing.T) {
 	}{
 		{
 			name: "返回帖子内容",
-			mock: func(ctrl *gomock.Controller) service.ArticleService {
+			mock: func(ctrl *gomock.Controller) (service.ArticleService, service.UserActivityService) {
 				svc := svcmock.NewMockArticleService(ctrl)
 				svc.EXPECT().GetById(gomock.Any(), gomock.Any()).Return(&domain.Article{
 					Author: domain.Author{
 						Id: 1,
 					},
 				}, nil)
-				return svc
+				actSvc := svcmock.NewMockUserActivityService(ctrl)
+				return svc, actSvc
 			},
 			reqBuilder: func(t *testing.T) *http.Request {
 
@@ -50,9 +51,10 @@ func TestArticleHandler_Detail(t *testing.T) {
 		},
 		{
 			name: "返回id错误",
-			mock: func(ctrl *gomock.Controller) service.ArticleService {
+			mock: func(ctrl *gomock.Controller) (service.ArticleService, service.UserActivityService) {
 				svc := svcmock.NewMockArticleService(ctrl)
-				return svc
+				actSvc := svcmock.NewMockUserActivityService(ctrl)
+				return svc, actSvc
 			},
 			reqBuilder: func(t *testing.T) *http.Request {
 				articleId := "bcdedit"
@@ -72,8 +74,8 @@ func TestArticleHandler_Detail(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			svc := tc.mock(ctrl)
-			hdl := NewArticleHandler(svc, logger.NewLogger(zap.L()))
+			svc, actSvc := tc.mock(ctrl)
+			hdl := NewArticleHandler(svc, actSvc, logger.NewLogger(zap.L()))
 
 			recorder := httptest.NewRecorder()
 			req := tc.reqBuilder(t)

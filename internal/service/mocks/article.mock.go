@@ -40,10 +40,10 @@ func (m *MockArticleService) EXPECT() *MockArticleServiceMockRecorder {
 }
 
 // GetById mocks base method.
-func (m *MockArticleService) GetById(arg0 context.Context, arg1 int64) (*domain.Article, error) {
+func (m *MockArticleService) GetById(arg0 context.Context, arg1 int64) (domain.Article, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetById", arg0, arg1)
-	ret0, _ := ret[0].(*domain.Article)
+	ret0, _ := ret[0].(domain.Article)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -54,23 +54,38 @@ func (mr *MockArticleServiceMockRecorder) GetById(arg0, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetById", reflect.TypeOf((*MockArticleService)(nil).GetById), arg0, arg1)
 }
 
-// List mocks base method.
-func (m *MockArticleService) List(ctx context.Context, authorId int64, page, pageSize int) ([]*domain.Article, error) {
+// GetPubById mocks base method.
+func (m *MockArticleService) GetPubById(ctx context.Context, artId int64) (domain.PublishedArticle, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", ctx, authorId, page, pageSize)
-	ret0, _ := ret[0].([]*domain.Article)
+	ret := m.ctrl.Call(m, "GetPubById", ctx, artId)
+	ret0, _ := ret[0].(domain.PublishedArticle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPubById indicates an expected call of GetPubById.
+func (mr *MockArticleServiceMockRecorder) GetPubById(ctx, artId any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPubById", reflect.TypeOf((*MockArticleService)(nil).GetPubById), ctx, artId)
+}
+
+// List mocks base method.
+func (m *MockArticleService) List(ctx context.Context, authorId int64, limit, offset int) ([]domain.Article, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", ctx, authorId, limit, offset)
+	ret0, _ := ret[0].([]domain.Article)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockArticleServiceMockRecorder) List(ctx, authorId, page, pageSize any) *gomock.Call {
+func (mr *MockArticleServiceMockRecorder) List(ctx, authorId, limit, offset any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockArticleService)(nil).List), ctx, authorId, page, pageSize)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockArticleService)(nil).List), ctx, authorId, limit, offset)
 }
 
 // Publish mocks base method.
-func (m *MockArticleService) Publish(arg0 context.Context, arg1 *domain.Article) (int64, error) {
+func (m *MockArticleService) Publish(arg0 context.Context, arg1 domain.Article) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Publish", arg0, arg1)
 	ret0, _ := ret[0].(int64)
@@ -85,7 +100,7 @@ func (mr *MockArticleServiceMockRecorder) Publish(arg0, arg1 any) *gomock.Call {
 }
 
 // Save mocks base method.
-func (m *MockArticleService) Save(arg0 context.Context, arg1 *domain.Article) (int64, error) {
+func (m *MockArticleService) Save(arg0 context.Context, arg1 domain.Article) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Save", arg0, arg1)
 	ret0, _ := ret[0].(int64)
