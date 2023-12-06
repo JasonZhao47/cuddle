@@ -1,12 +1,14 @@
 package web
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/jasonzhao47/cuddle/internal/domain"
 	"github.com/jasonzhao47/cuddle/internal/logger"
 	"github.com/jasonzhao47/cuddle/internal/service"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type ArticleHandler struct {
@@ -233,14 +235,18 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 			logger.Error(err))
 	}
 	// 在这增加阅读数
-	err = h.userActSvc.IncrRead(ctx, h.biz, art.Id)
-	if err != nil {
-		h.l.Error("阅读量增加失败了",
-			logger.String("id", idStr),
-			logger.String("biz", "pub"),
-			logger.Int64("biz_id", 1),
-			logger.Error(err))
-	}
+	go func() {
+		newCtx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+		defer cancel()
+		err = h.userActSvc.IncrRead(newCtx, h.biz, art.Id)
+		if err != nil {
+			h.l.Error("阅读量增加失败了",
+				logger.String("id", idStr),
+				logger.String("biz", "pub"),
+				logger.Int64("biz_id", 1),
+				logger.Error(err))
+		}
+	}()
 	ctx.JSON(http.StatusOK, Result{
 		Data: art,
 	})
