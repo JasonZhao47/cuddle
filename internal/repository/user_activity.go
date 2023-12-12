@@ -8,6 +8,7 @@ import (
 
 type UserActivityRepository interface {
 	IncrRead(ctx context.Context, biz string, bizId int64) error
+	BatchIncrRead(ctx context.Context, bizs []string, bizIds []int64) error
 }
 
 type CacheUserActivityRepository struct {
@@ -26,4 +27,22 @@ func (repo *CacheUserActivityRepository) IncrRead(ctx context.Context, biz strin
 		return err
 	}
 	return repo.cache.IncrReadCntIfPresent(ctx, biz, bizId)
+}
+
+func (repo *CacheUserActivityRepository) BatchIncrRead(ctx context.Context, bizs []string, bizIds []int64) error {
+	err := repo.dao.BatchIncrReadCntIfPresent(ctx, bizs, bizIds)
+	if err != nil {
+		return err
+	}
+	// 顺序保证要让调用者保证
+	n := len(bizs)
+	go func() {
+		for i := 0; i < n; i++ {
+			er := repo.cache.IncrReadCntIfPresent(ctx, bizs[i], bizIds[i])
+			if er != nil {
+				// log here
+			}
+		}
+	}()
+	return nil
 }

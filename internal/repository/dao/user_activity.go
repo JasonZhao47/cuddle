@@ -9,6 +9,7 @@ import (
 
 type UserActivityDAO interface {
 	IncrReadCntIfPresent(ctx context.Context, biz string, bizId int64) error
+	BatchIncrReadCntIfPresent(ctx context.Context, bizs []string, bizIds []int64) error
 }
 
 type userActivityDAO struct {
@@ -35,6 +36,20 @@ func (d *userActivityDAO) IncrReadCntIfPresent(ctx context.Context, biz string, 
 		CTime:   now,
 	}).Error
 	return err
+}
+
+func (d *userActivityDAO) BatchIncrReadCntIfPresent(ctx context.Context, bizs []string, bizIds []int64) error {
+	return d.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		// 调用者应该保证对应关系
+		n := len(bizs)
+		for i := 0; i < n; i++ {
+			err := d.IncrReadCntIfPresent(ctx, bizs[i], bizIds[i])
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 type UserActivity struct {

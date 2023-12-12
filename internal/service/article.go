@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/jasonzhao47/cuddle/internal/domain"
+	"github.com/jasonzhao47/cuddle/internal/domain/event/article"
 	"github.com/jasonzhao47/cuddle/internal/repository"
 )
 
@@ -18,7 +19,8 @@ type ArticleService interface {
 }
 
 type articleService struct {
-	repo repository.ArticleRepository
+	repo     repository.ArticleRepository
+	producer article.SaramaSyncProducer
 }
 
 func NewArticleService(repo repository.ArticleRepository) ArticleService {
@@ -56,6 +58,17 @@ func (svc *articleService) WithDraw(ctx context.Context, userId int64, artId int
 	return svc.repo.SyncStatus(ctx, userId, artId, domain.ArticleStatusPrivate)
 }
 
-func (svc *articleService) GetPubById(ctx context.Context, artId int64) (domain.PublishedArticle, error) {
-	return svc.repo.GetPubById(ctx, artId)
+func (svc *articleService) GetPubById(ctx context.Context, id int64) (domain.PublishedArticle, error) {
+	pubArt, err := svc.repo.GetPubById(ctx, id)
+	// producer - ready to generate a +1 to pub
+	go func() {
+		er := svc.producer.ProduceReadEvent(article.ReadEvent{
+			Aid: id,
+			Uid: id,
+		})
+		if er != nil {
+			// log here
+		}
+	}()
+	return pubArt, err
 }
