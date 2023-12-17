@@ -1,32 +1,29 @@
-package sms
+package tencent
 
 import (
 	"context"
 	"fmt"
 	"github.com/ecodeclub/ekit"
+	sms2 "github.com/jasonzhao47/cuddle/internal/service/sms"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
-	sms "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20210111" // 引入sms
+	sms "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/sms/v20210111"
 )
 
-type Service interface {
-	Send(ctx context.Context, tplId string, appId string) error
-}
-
-type SMSService struct {
+type SmsService struct {
 	client   *sms.Client
 	appId    *string
 	signName *string
 }
 
-func NewSMSService(client *sms.Client, appId string, signName string) *SMSService {
-	return &SMSService{
+func NewSMSService(client *sms.Client, appId string, signName string) sms2.Service {
+	return &SmsService{
 		client:   client,
 		appId:    ekit.ToPtr[string](appId),
 		signName: ekit.ToPtr[string](signName),
 	}
 }
 
-func (s *SMSService) Send(ctx context.Context, tplId string, args []string, phoneNums []string) error {
+func (s *SmsService) Send(ctx context.Context, tplId string, args []string, phoneNums []string) error {
 	request := sms.NewSendSmsRequest()
 
 	request.SetContext(ctx)

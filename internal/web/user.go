@@ -9,6 +9,7 @@ import (
 	"github.com/jasonzhao47/cuddle/internal/domain"
 	"github.com/jasonzhao47/cuddle/internal/logger"
 	"github.com/jasonzhao47/cuddle/internal/service"
+	"github.com/jasonzhao47/cuddle/pkg/ginx"
 	"net/http"
 	"time"
 )
@@ -288,18 +289,18 @@ func (h *UserHandler) SendSMSLoginCode(ctx *gin.Context) {
 		return
 	}
 	if req.Phone == "" {
-		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "请输入手机号码"})
+		ctx.JSON(http.StatusOK, ginx.Result{Code: 4, Msg: "请输入手机号码"})
 		return
 	}
 	err := h.codeSvc.Send(ctx, bizLogin, req.Phone)
 	switch err {
 	case nil:
-		ctx.JSON(http.StatusOK, Result{Msg: "发送成功"})
+		ctx.JSON(http.StatusOK, ginx.Result{Msg: "发送成功"})
 	case service.ErrTooManyCodeSend:
-		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "短信发送太频繁，请稍后再试"})
+		ctx.JSON(http.StatusOK, ginx.Result{Code: 4, Msg: "短信发送太频繁，请稍后再试"})
 		h.logger.Warn("短信发送过于频繁")
 	default:
-		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统错误"})
+		ctx.JSON(http.StatusOK, ginx.Result{Code: 5, Msg: "系统错误"})
 		// zap log here
 	}
 }
@@ -314,16 +315,16 @@ func (h *UserHandler) LoginSMS(ctx *gin.Context) {
 		return
 	}
 	if req.Phone == "" {
-		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "请输入手机号码"})
+		ctx.JSON(http.StatusOK, ginx.Result{Code: 4, Msg: "请输入手机号码"})
 		return
 	}
 	if req.Code == "" {
-		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "请输入验证码"})
+		ctx.JSON(http.StatusOK, ginx.Result{Code: 4, Msg: "请输入验证码"})
 		return
 	}
 	ok, err := h.codeSvc.Verify(ctx, bizLogin, req.Phone, req.Code)
 	if err != nil {
-		ctx.JSON(http.StatusOK, Result{Code: 5, Msg: "系统错误"})
+		ctx.JSON(http.StatusOK, ginx.Result{Code: 5, Msg: "系统错误"})
 		h.logger.Error("用户手机号码登陆失败", logger.Field{
 			Key:   "5",
 			Value: err.Error(),
@@ -332,22 +333,22 @@ func (h *UserHandler) LoginSMS(ctx *gin.Context) {
 		return
 	}
 	if !ok {
-		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "验证码不正确"})
+		ctx.JSON(http.StatusOK, ginx.Result{Code: 4, Msg: "验证码不正确"})
 		return
 	}
 	user, err := h.svc.FindOrCreate(ctx, req.Phone)
 	if err != nil {
-		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "系统错误"})
+		ctx.JSON(http.StatusOK, ginx.Result{Code: 4, Msg: "系统错误"})
 		return
 	}
 	ssid := uuid.New().String()
 	// set JWT Token
 	err = h.setJWTToken(ctx, ssid, user.Id)
 	if err != nil {
-		ctx.JSON(http.StatusOK, Result{Code: 4, Msg: "系统错误"})
+		ctx.JSON(http.StatusOK, ginx.Result{Code: 4, Msg: "系统错误"})
 		return
 	}
-	ctx.JSON(http.StatusOK, Result{Code: 0, Msg: "登录成功"})
+	ctx.JSON(http.StatusOK, ginx.Result{Code: 0, Msg: "登录成功"})
 }
 
 var JWTKey = []byte("k6CswdUm77WKcbM68UQUuxVsHSpTCwgK")

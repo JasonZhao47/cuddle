@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jasonzhao47/cuddle/internal/repository"
 	"github.com/jasonzhao47/cuddle/internal/repository/cache"
+	"github.com/jasonzhao47/cuddle/internal/service/sms"
 	"math/rand"
 )
 
@@ -19,23 +20,22 @@ type CodeService interface {
 
 type SMSCodeService struct {
 	repo *repository.CodeRepository
+	sms  sms.Service
 }
 
-func NewCodeService(repo *repository.CodeRepository) CodeService {
-	return &SMSCodeService{
-		repo: repo,
-	}
+func NewSMSCodeService(repo *repository.CodeRepository, sms sms.Service) *SMSCodeService {
+	return &SMSCodeService{repo: repo, sms: sms}
 }
 
 func (c *SMSCodeService) Send(ctx context.Context, biz string, phone string) error {
 	// 通过biz进行业务区别
-	tempCode := generateCode()
+	tempCode := c.generateCode()
 	err := c.repo.Set(ctx, biz, phone, tempCode)
 	if err != nil {
 		return err
 	}
-	// sms: send message
-	return nil
+	const codeTplId = "19381892"
+	return c.sms.Send(ctx, codeTplId, []string{tempCode}, []string{phone})
 }
 
 func (c *SMSCodeService) Verify(ctx context.Context, biz string, phone string, code string) (bool, error) {
@@ -47,7 +47,7 @@ func (c *SMSCodeService) Verify(ctx context.Context, biz string, phone string, c
 	return success, nil
 }
 
-func generateCode() string {
+func (c *SMSCodeService) generateCode() string {
 	code := rand.Intn(999999)
 	return fmt.Sprintf("%6d", code)
 }

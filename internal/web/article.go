@@ -6,6 +6,7 @@ import (
 	"github.com/jasonzhao47/cuddle/internal/domain"
 	"github.com/jasonzhao47/cuddle/internal/logger"
 	"github.com/jasonzhao47/cuddle/internal/service"
+	"github.com/jasonzhao47/cuddle/pkg/ginx"
 	"net/http"
 	"strconv"
 	"time"
@@ -28,14 +29,15 @@ func NewArticleHandler(svc service.ArticleService, userActSvc service.UserActivi
 }
 
 func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
-	ug := server.Group("/articles")
+	art := server.Group("/articles")
 	{
-		ug.POST("/edit", h.Edit)
-		ug.POST("/publish", h.Publish)
-		ug.GET("/detail/:id", h.Detail)
-		ug.POST("/list", h.List)
-		ug.POST("/withdraw", h.Withdraw)
+		art.POST("/edit", h.Edit)
+		art.POST("/publish", h.Publish)
+		art.GET("/detail/:id", h.Detail)
+		art.POST("/list", h.List)
+		art.POST("/withdraw", h.Withdraw)
 	}
+
 	pub := server.Group("/pub")
 	{
 		pub.GET("/detail", h.PubDetail)
@@ -67,7 +69,7 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 		Content: req.Content,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusOK, Result{
+		ctx.JSON(http.StatusOK, ginx.Result{
 			Code: 5,
 			Msg:  "编辑失败",
 			Data: nil,
@@ -75,7 +77,7 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 		h.l.Error("编辑存储失败了", logger.Int64("id", req.Id), logger.Error(err))
 		return
 	}
-	ctx.JSON(http.StatusOK, Result{
+	ctx.JSON(http.StatusOK, ginx.Result{
 		Data: id,
 	})
 }
@@ -104,14 +106,14 @@ func (h *ArticleHandler) Publish(ctx *gin.Context) {
 		Content: req.Content,
 	})
 	if err != nil {
-		ctx.JSON(http.StatusOK, Result{
+		ctx.JSON(http.StatusOK, ginx.Result{
 			Code: 5,
 			Msg:  "发布失败",
 		})
 		h.l.Error("发布失败", logger.Int64("id", req.Id), logger.Error(err))
 		return
 	}
-	ctx.JSON(http.StatusOK, Result{
+	ctx.JSON(http.StatusOK, ginx.Result{
 		Data: id,
 	})
 	return
@@ -121,7 +123,7 @@ func (h *ArticleHandler) Detail(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusOK, Result{
+		ctx.JSON(http.StatusOK, ginx.Result{
 			Code: 4,
 			Msg:  "id参数错误",
 		})
@@ -132,7 +134,7 @@ func (h *ArticleHandler) Detail(ctx *gin.Context) {
 	}
 	article, err := h.svc.GetById(ctx, id)
 	if err != nil {
-		ctx.JSON(http.StatusOK, Result{
+		ctx.JSON(http.StatusOK, ginx.Result{
 			Code: 5,
 			Msg:  "帖子未找到",
 		})
@@ -144,7 +146,7 @@ func (h *ArticleHandler) Detail(ctx *gin.Context) {
 	user := ctx.MustGet("user").(UserClaim)
 	if user.Id != article.Author.Id {
 		// bad intention
-		ctx.JSON(http.StatusOK, Result{
+		ctx.JSON(http.StatusOK, ginx.Result{
 			Code: 5,
 			Msg:  "系统错误",
 		})
@@ -153,7 +155,7 @@ func (h *ArticleHandler) Detail(ctx *gin.Context) {
 			logger.Int64("id", id))
 		return
 	}
-	ctx.JSON(http.StatusOK, Result{
+	ctx.JSON(http.StatusOK, ginx.Result{
 		Data: nil,
 	})
 }
@@ -173,7 +175,7 @@ func (h *ArticleHandler) List(ctx *gin.Context) {
 	// 不要在这里检测author了
 	// 可以认为，在handler不必处理业务逻辑
 	if err != nil {
-		ctx.JSON(http.StatusOK, Result{
+		ctx.JSON(http.StatusOK, ginx.Result{
 			Code: 5,
 			Msg:  "帖子未找到",
 		})
@@ -182,7 +184,7 @@ func (h *ArticleHandler) List(ctx *gin.Context) {
 			logger.Error(err))
 		return
 	}
-	ctx.JSON(http.StatusOK, Result{
+	ctx.JSON(http.StatusOK, ginx.Result{
 		Data: arts,
 	})
 }
@@ -199,7 +201,7 @@ func (h *ArticleHandler) Withdraw(ctx *gin.Context) {
 	user := ctx.MustGet("user").(UserClaim)
 	err := h.svc.WithDraw(ctx, user.Id, req.Id)
 	if err != nil {
-		ctx.JSON(http.StatusOK, Result{
+		ctx.JSON(http.StatusOK, ginx.Result{
 			Code: 5,
 			Msg:  "隐藏失败",
 		})
@@ -207,14 +209,14 @@ func (h *ArticleHandler) Withdraw(ctx *gin.Context) {
 			logger.Int64("id", req.Id),
 			logger.Error(err))
 	}
-	ctx.JSON(http.StatusOK, Result{})
+	ctx.JSON(http.StatusOK, ginx.Result{})
 }
 
 func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		ctx.JSON(http.StatusOK, Result{
+		ctx.JSON(http.StatusOK, ginx.Result{
 			Code: 4,
 			Msg:  "id参数错误",
 		})
@@ -226,7 +228,7 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 	// 不需要登录就可以看
 	art, err := h.svc.GetPubById(ctx, id)
 	if err != nil {
-		ctx.JSON(http.StatusOK, Result{
+		ctx.JSON(http.StatusOK, ginx.Result{
 			Code: 5,
 			Msg:  "查看失败",
 		})
@@ -247,7 +249,7 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 				logger.Error(err))
 		}
 	}()
-	ctx.JSON(http.StatusOK, Result{
+	ctx.JSON(http.StatusOK, ginx.Result{
 		Data: art,
 	})
 }
