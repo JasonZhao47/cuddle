@@ -23,7 +23,7 @@ type SMSCodeService struct {
 	sms  sms.Service
 }
 
-func NewSMSCodeService(repo *repository.CodeRepository, sms sms.Service) *SMSCodeService {
+func NewCodeService(repo *repository.CodeRepository, sms sms.Service) CodeService {
 	return &SMSCodeService{repo: repo, sms: sms}
 }
 

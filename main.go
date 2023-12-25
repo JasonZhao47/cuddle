@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"net/http"
@@ -12,6 +13,7 @@ func main() {
 	initViperV2()
 	//initThirdParty()
 	server := InitWebServer()
+	initPrometheus()
 	// run a health check
 	server.GET("/health", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "I'm still alive!")
@@ -57,4 +59,12 @@ func initViperV2() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func initPrometheus() {
+	go func() {
+		// 专门给 prometheus 用的端口
+		http.Handle("/metrics", promhttp.Handler())
+		_ = http.ListenAndServe(":8081", nil)
+	}()
 }
