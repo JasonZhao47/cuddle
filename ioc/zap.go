@@ -1,7 +1,7 @@
 package ioc
 
 import (
-	"github.com/jasonzhao47/cuddle/internal/logger"
+	"github.com/jasonzhao47/cuddle/pkg/logger"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )

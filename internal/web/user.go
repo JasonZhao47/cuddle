@@ -7,9 +7,9 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/jasonzhao47/cuddle/internal/domain"
-	"github.com/jasonzhao47/cuddle/internal/logger"
 	"github.com/jasonzhao47/cuddle/internal/service"
 	"github.com/jasonzhao47/cuddle/pkg/ginx"
+	"github.com/jasonzhao47/cuddle/pkg/logger"
 	"net/http"
 	"time"
 )

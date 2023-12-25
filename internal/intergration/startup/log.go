@@ -1,7 +1,7 @@
 package startup
 
 import (
-	"github.com/jasonzhao47/cuddle/internal/logger"
+	"github.com/jasonzhao47/cuddle/pkg/logger"
 	"go.uber.org/zap"
 )
 

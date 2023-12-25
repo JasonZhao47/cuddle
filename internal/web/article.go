@@ -4,9 +4,9 @@ import (
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/jasonzhao47/cuddle/internal/domain"
-	"github.com/jasonzhao47/cuddle/internal/logger"
 	"github.com/jasonzhao47/cuddle/internal/service"
 	"github.com/jasonzhao47/cuddle/pkg/ginx"
+	logger2 "github.com/jasonzhao47/cuddle/pkg/logger"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,11 +15,11 @@ import (
 type ArticleHandler struct {
 	svc        service.ArticleService
 	userActSvc service.UserActivityService
-	l          logger.Logger
+	l          logger2.Logger
 	biz        string
 }
 
-func NewArticleHandler(svc service.ArticleService, userActSvc service.UserActivityService, l logger.Logger) *ArticleHandler {
+func NewArticleHandler(svc service.ArticleService, userActSvc service.UserActivityService, l logger2.Logger) *ArticleHandler {
 	return &ArticleHandler{
 		svc:        svc,
 		userActSvc: userActSvc,
@@ -74,7 +74,7 @@ func (h *ArticleHandler) Edit(ctx *gin.Context) {
 			Msg:  "编辑失败",
 			Data: nil,
 		})
-		h.l.Error("编辑存储失败了", logger.Int64("id", req.Id), logger.Error(err))
+		h.l.Error("编辑存储失败了", logger2.Int64("id", req.Id), logger2.Error(err))
 		return
 	}
 	ctx.JSON(http.StatusOK, ginx.Result{
@@ -93,7 +93,7 @@ func (h *ArticleHandler) Publish(ctx *gin.Context) {
 	}
 	var req Req
 	if err := ctx.Bind(&req); err != nil {
-		h.l.Warn("发布失败，参数不对", logger.Int64("id", req.Id), logger.Error(err))
+		h.l.Warn("发布失败，参数不对", logger2.Int64("id", req.Id), logger2.Error(err))
 		return
 	}
 	user := ctx.MustGet("user").(UserClaim)
@@ -110,7 +110,7 @@ func (h *ArticleHandler) Publish(ctx *gin.Context) {
 			Code: 5,
 			Msg:  "发布失败",
 		})
-		h.l.Error("发布失败", logger.Int64("id", req.Id), logger.Error(err))
+		h.l.Error("发布失败", logger2.Int64("id", req.Id), logger2.Error(err))
 		return
 	}
 	ctx.JSON(http.StatusOK, ginx.Result{
@@ -128,8 +128,8 @@ func (h *ArticleHandler) Detail(ctx *gin.Context) {
 			Msg:  "id参数错误",
 		})
 		h.l.Warn("查询帖子失败，id格式不对",
-			logger.String("id", idStr),
-			logger.Error(err))
+			logger2.String("id", idStr),
+			logger2.Error(err))
 		return
 	}
 	article, err := h.svc.GetById(ctx, id)
@@ -139,8 +139,8 @@ func (h *ArticleHandler) Detail(ctx *gin.Context) {
 			Msg:  "帖子未找到",
 		})
 		h.l.Error("查询帖子失败",
-			logger.Int64("article_id", id),
-			logger.Error(err))
+			logger2.Int64("article_id", id),
+			logger2.Error(err))
 		return
 	}
 	user := ctx.MustGet("user").(UserClaim)
@@ -151,8 +151,8 @@ func (h *ArticleHandler) Detail(ctx *gin.Context) {
 			Msg:  "系统错误",
 		})
 		h.l.Warn("非法查询文章",
-			logger.Int64("user_id", user.Id),
-			logger.Int64("id", id))
+			logger2.Int64("user_id", user.Id),
+			logger2.Int64("id", id))
 		return
 	}
 	ctx.JSON(http.StatusOK, ginx.Result{
@@ -180,8 +180,8 @@ func (h *ArticleHandler) List(ctx *gin.Context) {
 			Msg:  "帖子未找到",
 		})
 		h.l.Error("查询帖子错误",
-			logger.Int64("user_id", user.Id),
-			logger.Error(err))
+			logger2.Int64("user_id", user.Id),
+			logger2.Error(err))
 		return
 	}
 	ctx.JSON(http.StatusOK, ginx.Result{
@@ -205,9 +205,9 @@ func (h *ArticleHandler) Withdraw(ctx *gin.Context) {
 			Code: 5,
 			Msg:  "隐藏失败",
 		})
-		h.l.Error("隐藏帖子失败了", logger.Int64("user_id", user.Id),
-			logger.Int64("id", req.Id),
-			logger.Error(err))
+		h.l.Error("隐藏帖子失败了", logger2.Int64("user_id", user.Id),
+			logger2.Int64("id", req.Id),
+			logger2.Error(err))
 	}
 	ctx.JSON(http.StatusOK, ginx.Result{})
 }
@@ -221,8 +221,8 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 			Msg:  "id参数错误",
 		})
 		h.l.Warn("查询帖子失败，id不对",
-			logger.String("id", idStr),
-			logger.Error(err))
+			logger2.String("id", idStr),
+			logger2.Error(err))
 		return
 	}
 	// 不需要登录就可以看
@@ -233,8 +233,8 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 			Msg:  "查看失败",
 		})
 		h.l.Error("查看帖子失败了",
-			logger.String("id", idStr),
-			logger.Error(err))
+			logger2.String("id", idStr),
+			logger2.Error(err))
 	}
 	// 在这增加阅读数
 	go func() {
@@ -243,10 +243,10 @@ func (h *ArticleHandler) PubDetail(ctx *gin.Context) {
 		err = h.userActSvc.IncrRead(newCtx, h.biz, art.Id)
 		if err != nil {
 			h.l.Error("阅读量增加失败了",
-				logger.String("id", idStr),
-				logger.String("biz", "pub"),
-				logger.Int64("biz_id", 1),
-				logger.Error(err))
+				logger2.String("id", idStr),
+				logger2.String("biz", "pub"),
+				logger2.Int64("biz_id", 1),
+				logger2.Error(err))
 		}
 	}()
 	ctx.JSON(http.StatusOK, ginx.Result{

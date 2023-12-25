@@ -3,7 +3,7 @@ package saramax
 import (
 	"context"
 	"github.com/IBM/sarama"
-	"github.com/jasonzhao47/cuddle/internal/logger"
+	logger2 "github.com/jasonzhao47/cuddle/pkg/logger"
 	"time"
 )
 
@@ -11,7 +11,7 @@ const batchSize = 10
 
 type Handler struct {
 	fn func(msgs []*sarama.ConsumerMessage) error
-	l  logger.Logger
+	l  logger2.Logger
 }
 
 func (h *Handler) Setup(session sarama.ConsumerGroupSession) error {
@@ -44,7 +44,7 @@ func (h *Handler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama
 		err := h.fn(batch)
 		if err != nil {
 			h.l.Error("处理消息失败",
-				logger.Error(err))
+				logger2.Error(err))
 		}
 		for _, msg := range batch {
 			session.MarkMessage(msg, "")
