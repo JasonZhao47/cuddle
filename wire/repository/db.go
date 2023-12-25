@@ -11,7 +11,10 @@ func InitDB() *gorm.DB {
 		// 慢查询logger
 		// Logger:
 	})
-	db.Use(prometheus.New(
+	if err != nil {
+		panic(err)
+	}
+	err = db.Use(prometheus.New(
 		prometheus.Config{
 			DBName:          "cuddle",
 			RefreshInterval: 15,
