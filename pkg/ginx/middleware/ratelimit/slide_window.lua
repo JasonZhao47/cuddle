@@ -1,7 +1,7 @@
 --    1. 记录每个请求来的timestamp，每个客户端对应一个key
 --    2. 只保留window内的所有访问数量
 --    3. 当前时间，判断如果window内访问数量，超限了就返回1，否则返回0
-local key = KEY[1]
+local key = KEYS[1]
 --
 local window = tonumber(ARGV[1])
 local threshold = tonumber(ARGV[2])

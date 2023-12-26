@@ -35,8 +35,9 @@ func InitWebServer() *gin.Engine {
 		repository.NewCacheUserActivityRepository,
 		// service
 		ioc.InitSMSService,
+		ioc.InitPrometheusService,
 		service.NewUserService,
-		service.NewCodeService,
+		service.NewSMSCodeService,
 		service.NewArticleService,
 		service.NewActivityService,
 		// handler

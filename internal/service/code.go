@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/jasonzhao47/cuddle/internal/repository"
 	"github.com/jasonzhao47/cuddle/internal/repository/cache"
-	"github.com/jasonzhao47/cuddle/internal/service/sms"
+	"github.com/jasonzhao47/cuddle/internal/service/sms/prometheus"
 	"math/rand"
 )
 
@@ -19,12 +19,12 @@ type CodeService interface {
 }
 
 type SMSCodeService struct {
-	repo *repository.CodeRepository
-	sms  sms.Service
+	repo      *repository.CodeRepository
+	decorator *prometheus.Decorator
 }
 
-func NewCodeService(repo *repository.CodeRepository, sms sms.Service) CodeService {
-	return &SMSCodeService{repo: repo, sms: sms}
+func NewSMSCodeService(repo *repository.CodeRepository, decorator *prometheus.Decorator) CodeService {
+	return &SMSCodeService{repo: repo, decorator: decorator}
 }
 
 func (c *SMSCodeService) Send(ctx context.Context, biz string, phone string) error {
@@ -35,7 +35,7 @@ func (c *SMSCodeService) Send(ctx context.Context, biz string, phone string) err
 		return err
 	}
 	const codeTplId = "19381892"
-	return c.sms.Send(ctx, codeTplId, []string{tempCode}, []string{phone})
+	return c.decorator.Send(ctx, codeTplId, []string{tempCode}, []string{phone})
 }
 
 func (c *SMSCodeService) Verify(ctx context.Context, biz string, phone string, code string) (bool, error) {

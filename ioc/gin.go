@@ -9,7 +9,6 @@ import (
 	"github.com/jasonzhao47/cuddle/internal/web"
 	"github.com/jasonzhao47/cuddle/internal/web/middleware"
 	prom "github.com/jasonzhao47/cuddle/pkg/ginx/middleware/prometheus"
-	"github.com/jasonzhao47/cuddle/pkg/ginx/middleware/ratelimit"
 	"github.com/redis/go-redis/v9"
 	"strings"
 	"time"
@@ -51,7 +50,7 @@ func GinMiddlewares(cmd redis.Cmdable) []gin.HandlerFunc {
 		session(),
 		promBuilder.BuildResponseTime(),
 		promBuilder.BuildActiveRequests(),
-		ratelimit.NewBuilder(cmd, time.Minute, 100).Build(),
+		//ratelimit.NewBuilder(cmd, time.Minute, 100).Build(),
 		middleware.NewLoginJWTBuilder(loginPathRegExp).Build(),
 	}
 }
