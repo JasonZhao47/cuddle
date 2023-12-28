@@ -39,10 +39,10 @@ func (a *AsyncGormSmsDAO) GetPreemptiveSms(ctx context.Context) (AsyncSms, error
 	var sms AsyncSms
 	err := a.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		now := time.Now().UnixMilli()
-		UTime := time.Now().UnixMilli() - time.Minute.Milliseconds()
+		Utime := time.Now().UnixMilli() - time.Minute.Milliseconds()
 		er := tx.Clauses(clause.Locking{
 			Strength: "UPDATE",
-		}).Where("utime < ? AND status = ?", UTime, asyncStatusWaiting).First(&sms).Error
+		}).Where("utime < ? AND status = ?", Utime, asyncStatusWaiting).First(&sms).Error
 		if er != nil {
 			return er
 		}
@@ -83,8 +83,8 @@ type AsyncSms struct {
 	Status   uint8
 	RetryCnt int
 	RetryMax int
-	UTime    int64 `gorm:"index"`
-	CTime    int64
+	Utime    int64 `gorm:"index"`
+	Ctime    int64
 }
 
 type SmsConfig struct {

@@ -79,7 +79,7 @@ func (builder *LoginJWTBuilder) Build() gin.HandlerFunc {
 		// then - now < 50
 		// remaining
 		expireTime := userClaim.ExpiresAt
-		if expireTime.Sub(time.Now()) < time.Second*50 {
+		if expireTime.Sub(time.Now()) < time.Minute*10 {
 			// 刷新expires时间
 			userClaim.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Minute * 5))
 			// 用JWTKey生成一个新的key，发给客户端的header

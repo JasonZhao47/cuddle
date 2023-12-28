@@ -66,7 +66,7 @@ func (a *asyncSmsRepository) toEntity(s domain.AsyncSms) dao.AsyncSms {
 		Status:   0,
 		RetryCnt: 0,
 		RetryMax: s.RetryMax,
-		UTime:    now,
-		CTime:    now,
+		Utime:    now,
+		Ctime:    now,
 	}
 }

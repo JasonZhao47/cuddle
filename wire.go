@@ -5,6 +5,7 @@ package main
 import (
 	"github.com/google/wire"
 	"github.com/jasonzhao47/cuddle/internal/domain/event"
+	"github.com/jasonzhao47/cuddle/internal/domain/event/article"
 	"github.com/jasonzhao47/cuddle/internal/repository"
 	"github.com/jasonzhao47/cuddle/internal/repository/cache"
 	"github.com/jasonzhao47/cuddle/internal/repository/dao"
@@ -18,7 +19,6 @@ func InitWebApp() *App {
 	wire.Build(
 		// ioc部分，公用组件集成 —— 数据库、缓存、日志、第三方
 		ioc.InitRedis, ioc.InitDB, ioc.InitLogger, ioc.InitSaramaClient,
-
 		// DAO
 		dao.NewUserDAO,
 		dao.NewArticleGormDAO,
@@ -35,6 +35,8 @@ func InitWebApp() *App {
 		repository.NewCacheUserActivityRepository,
 		event.NewUserActivityEventConsumer,
 		ioc.InitConsumers,
+		ioc.InitSyncProducer,
+		article.NewSaramaSyncProducer,
 		// service
 		ioc.InitSMSService,
 		ioc.InitPrometheusService,

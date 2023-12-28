@@ -40,7 +40,7 @@ func (h *ArticleHandler) RegisterRoutes(server *gin.Engine) {
 
 	pub := server.Group("/pub")
 	{
-		pub.GET("/detail", h.PubDetail)
+		pub.GET("/:id", h.PubDetail)
 	}
 }
 

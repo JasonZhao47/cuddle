@@ -20,11 +20,11 @@ type ArticleService interface {
 
 type articleService struct {
 	repo     repository.ArticleRepository
-	producer article.SaramaSyncProducer
+	producer article.Producer
 }
 
-func NewArticleService(repo repository.ArticleRepository) ArticleService {
-	return &articleService{repo: repo}
+func NewArticleService(repo repository.ArticleRepository, producer article.Producer) ArticleService {
+	return &articleService{repo: repo, producer: producer}
 }
 
 func (svc *articleService) GetById(ctx context.Context, id int64) (domain.Article, error) {

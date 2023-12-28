@@ -14,7 +14,6 @@ func main() {
 	//initThirdParty()
 	app := InitWebApp()
 	initPrometheus()
-
 	// run a health check
 	app.server.GET("/health", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "I'm still alive!")

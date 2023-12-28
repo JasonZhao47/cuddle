@@ -226,7 +226,7 @@ func (h *UserHandler) LoginJWT(ctx *gin.Context) {
 			Id:        user.Id,
 			UserAgent: ctx.GetHeader("User-Agent"),
 			RegisteredClaims: jwt.RegisteredClaims{
-				ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute)),
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
 				IssuedAt:  jwt.NewNumericDate(time.Now()),
 			},
 		}
@@ -366,7 +366,7 @@ func (h *UserHandler) setJWTToken(ctx *gin.Context, ssid string, uid int64) erro
 		Ssid:      ssid,
 		UserAgent: ctx.GetHeader("User-Agent"),
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Minute)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(10 * time.Minute)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	})

@@ -8,6 +8,7 @@ package main
 
 import (
 	"github.com/jasonzhao47/cuddle/internal/domain/event"
+	"github.com/jasonzhao47/cuddle/internal/domain/event/article"
 	"github.com/jasonzhao47/cuddle/internal/repository"
 	"github.com/jasonzhao47/cuddle/internal/repository/cache"
 	"github.com/jasonzhao47/cuddle/internal/repository/dao"
@@ -36,14 +37,16 @@ func InitWebApp() *App {
 	articleDAO := dao.NewArticleGormDAO(db)
 	articleCache := cache.NewArticleCache(cmdable)
 	articleRepository := repository.NewArticleRepository(articleDAO, articleCache)
-	articleService := service.NewArticleService(articleRepository)
+	client := ioc.InitSaramaClient()
+	syncProducer := ioc.InitSyncProducer(client)
+	producer := article.NewSaramaSyncProducer(syncProducer)
+	articleService := service.NewArticleService(articleRepository, producer)
 	userActivityCache := cache.NewUserActivityCache(cmdable)
 	userActivityDAO := dao.NewUserActivityDAO(db)
 	userActivityRepository := repository.NewCacheUserActivityRepository(userActivityCache, userActivityDAO)
 	userActivityService := service.NewUserActivityService(userActivityRepository)
 	articleHandler := web.NewArticleHandler(articleService, userActivityService, logger)
 	engine := ioc.InitWebServer(v, userHandler, articleHandler)
-	client := ioc.InitSaramaClient()
 	userActivityEventConsumer := event.NewUserActivityEventConsumer(userActivityRepository, client, logger)
 	v2 := ioc.InitConsumers(userActivityEventConsumer)
 	app := &App{

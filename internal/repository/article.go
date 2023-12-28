@@ -173,8 +173,8 @@ func (repo *CachedArticleRepository) toDomain(dao dao.Article) domain.Article {
 		Topic:   dao.Topic,
 		Status:  domain.ArticleStatus(dao.Status),
 		Content: dao.Content,
-		CTime:   time.UnixMilli(dao.CTime),
-		UTime:   time.UnixMilli(dao.UTime),
+		Ctime:   time.UnixMilli(dao.Ctime),
+		Utime:   time.UnixMilli(dao.Utime),
 	}
 }
 
@@ -189,8 +189,8 @@ func (repo *CachedArticleRepository) toPublishedDomain(dao dao.PublishedArticle)
 		Topic:   dao.Topic,
 		Status:  domain.ArticleStatus(dao.Status),
 		Content: dao.Content,
-		CTime:   time.UnixMilli(dao.CTime),
-		UTime:   time.UnixMilli(dao.UTime),
+		Ctime:   time.UnixMilli(dao.Ctime),
+		Utime:   time.UnixMilli(dao.Utime),
 	}
 }
 
@@ -201,8 +201,8 @@ func (repo *CachedArticleRepository) toEntity(art domain.Article) dao.Article {
 		Topic:    art.Topic,
 		Status:   art.Status.ToUint8(),
 		Content:  art.Content,
-		CTime:    art.CTime.UnixMilli(),
-		UTime:    art.UTime.UnixMilli(),
+		Ctime:    art.Ctime.UnixMilli(),
+		Utime:    art.Utime.UnixMilli(),
 	}
 }
 

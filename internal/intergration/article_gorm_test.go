@@ -71,8 +71,8 @@ func (s *ArticleHandlerSuite) TestEdit() {
 				assert.Equal(t, "Title for testing", art.Topic)
 				assert.Equal(t, "Content", art.Content)
 				assert.Equal(t, int64(15), art.AuthorId)
-				assert.True(t, art.CTime > 0)
-				assert.True(t, art.UTime > 0)
+				assert.True(t, art.Ctime > 0)
+				assert.True(t, art.Utime > 0)
 			},
 			wantCode: 200,
 			wantResult: Result[int64]{
@@ -133,8 +133,8 @@ func (s *ArticleHandlerSuite) TestList() {
 						AuthorId: 15,
 						Topic:    "Test Topic " + strconv.Itoa(i+1),
 						Content:  "Test Content " + strconv.Itoa(i+1),
-						CTime:    time.Now().UnixMilli(),
-						UTime:    time.Now().UnixMilli(),
+						Ctime:    time.Now().UnixMilli(),
+						Utime:    time.Now().UnixMilli(),
 					})
 				}
 				s.db.Create(&arts)
@@ -235,8 +235,8 @@ func (s *ArticleHandlerSuite) TestArticlePublish() {
 				assert.Equal(t, "Title for testing", art.Topic)
 				assert.Equal(t, "Content", art.Content)
 				assert.Equal(t, int64(15), art.AuthorId)
-				assert.True(t, art.CTime > 0)
-				assert.True(t, art.UTime > 0)
+				assert.True(t, art.Ctime > 0)
+				assert.True(t, art.Utime > 0)
 			},
 			wantCode: 0,
 			wantResult: Result[int64]{
@@ -262,8 +262,8 @@ func (s *ArticleHandlerSuite) TestArticlePublish() {
 				assert.Equal(t, "Title for testing", art.Topic)
 				assert.Equal(t, "Content", art.Content)
 				assert.Equal(t, int64(15), art.AuthorId)
-				assert.True(t, art.CTime > 0)
-				assert.True(t, art.UTime > 0)
+				assert.True(t, art.Ctime > 0)
+				assert.True(t, art.Utime > 0)
 			},
 			wantCode: 0,
 			wantResult: Result[int64]{
@@ -287,8 +287,8 @@ func (s *ArticleHandlerSuite) TestArticlePublish() {
 				assert.Equal(t, "Title for testing", art.Topic)
 				assert.Equal(t, "Content", art.Content)
 				assert.Equal(t, int64(15), art.AuthorId)
-				assert.True(t, art.CTime > 0)
-				assert.True(t, art.UTime > 0)
+				assert.True(t, art.Ctime > 0)
+				assert.True(t, art.Utime > 0)
 			},
 			wantCode: 0,
 			wantResult: Result[int64]{

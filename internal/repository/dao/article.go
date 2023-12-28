@@ -40,8 +40,8 @@ func (d *ArticleGormDAO) GetById(ctx context.Context, id int64) (Article, error)
 
 func (d *ArticleGormDAO) Insert(ctx context.Context, article Article) (int64, error) {
 	now := time.Now().UnixMilli()
-	article.CTime = now
-	article.UTime = now
+	article.Ctime = now
+	article.Utime = now
 	// insert - not upsert!
 	err := d.db.WithContext(ctx).Create(&article).Error
 	return article.Id, err
@@ -88,8 +88,8 @@ func (d *ArticleGormDAO) Sync(ctx context.Context, art Article) (int64, error) {
 		pubArt := PublishedArticle{
 			Article: art,
 		}
-		pubArt.CTime = now
-		pubArt.UTime = now
+		pubArt.Ctime = now
+		pubArt.Utime = now
 		err := tx.Clauses(clause.OnConflict{
 			Columns: []clause.Column{
 				{Name: "id"},
@@ -168,8 +168,8 @@ type Article struct {
 	// why use int64 here
 	// bson doesn't support time.Time?
 	Status uint8
-	CTime  int64
-	UTime  int64
+	Ctime  int64
+	Utime  int64
 }
 
 type PublishedArticle struct {
