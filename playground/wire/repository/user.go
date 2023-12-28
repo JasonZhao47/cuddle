@@ -1,6 +1,8 @@
 package repository
 
-import "github.com/jasonzhao47/cuddle/wire/repository/dao"
+import (
+	"github.com/jasonzhao47/cuddle/playground/wire/repository/dao"
+)
 
 type UserRepository struct {
 	dao *dao.UserDAO
