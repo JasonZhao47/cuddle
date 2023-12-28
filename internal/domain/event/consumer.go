@@ -1,8 +1,9 @@
-package article
+package event
 
 import (
 	"context"
 	"github.com/IBM/sarama"
+	"github.com/jasonzhao47/cuddle/internal/domain/event/article"
 	"github.com/jasonzhao47/cuddle/internal/repository"
 	"github.com/jasonzhao47/cuddle/pkg/logger"
 	"github.com/jasonzhao47/cuddle/pkg/saramax"
@@ -14,7 +15,7 @@ const topic = "user_activity"
 type Consumer interface {
 	Start() error
 	BatchStart() error
-	Consume(messages []*sarama.ConsumerMessage, event ReadEvent) error
+	Consume(messages []*sarama.ConsumerMessage, event article.ReadEvent) error
 }
 
 type UserActivityEventConsumer struct {
@@ -23,7 +24,7 @@ type UserActivityEventConsumer struct {
 	l      logger.Logger
 }
 
-func NewReadEventConsumer(repo repository.UserActivityRepository, client sarama.Client, l logger.Logger) Consumer {
+func NewUserActivityEventConsumer(repo repository.UserActivityRepository, client sarama.Client, l logger.Logger) *UserActivityEventConsumer {
 	return &UserActivityEventConsumer{
 		repo:   repo,
 		client: client,
@@ -31,7 +32,7 @@ func NewReadEventConsumer(repo repository.UserActivityRepository, client sarama.
 	}
 }
 
-func (u *UserActivityEventConsumer) Consume(messages []*sarama.ConsumerMessage, event ReadEvent) error {
+func (u *UserActivityEventConsumer) Consume(messages []*sarama.ConsumerMessage, event article.ReadEvent) error {
 	// 消费特定内容
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -44,9 +45,9 @@ func (u *UserActivityEventConsumer) Start() error {
 		return err
 	}
 	go func() {
-		u.l.Info("开始消费", logger.String("topic", TopicReadEvent))
+		u.l.Info("开始消费", logger.String("topic", article.TopicReadEvent))
 		// 插件和钩子
-		err := cg.Consume(context.Background(), []string{TopicReadEvent}, saramax.NewHandler[ReadEvent](u.Consume, u.l))
+		err := cg.Consume(context.Background(), []string{article.TopicReadEvent}, saramax.NewHandler[article.ReadEvent](u.Consume, u.l))
 		if err != nil {
 			u.l.Error("消费错误", logger.Error(err))
 		}
@@ -60,9 +61,9 @@ func (u *UserActivityEventConsumer) BatchStart() error {
 		return err
 	}
 	go func() {
-		u.l.Info("开始消费", logger.String("topic", TopicReadEvent))
+		u.l.Info("开始消费", logger.String("topic", article.TopicReadEvent))
 		// 插件和钩子
-		err := cg.Consume(context.Background(), []string{TopicReadEvent}, saramax.NewBatchHandler[ReadEvent](u.Consume, u.l))
+		err := cg.Consume(context.Background(), []string{article.TopicReadEvent}, saramax.NewBatchHandler[article.ReadEvent](u.Consume, u.l))
 		if err != nil {
 			u.l.Error("消费错误", logger.Error(err))
 		}

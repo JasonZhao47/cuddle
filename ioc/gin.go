@@ -14,10 +14,7 @@ import (
 	"time"
 )
 
-func InitWebServer(
-	middlewares []gin.HandlerFunc,
-	userHandler *web.UserHandler,
-	articleHandler *web.ArticleHandler) *gin.Engine {
+func InitWebServer(middlewares []gin.HandlerFunc, userHandler *web.UserHandler, articleHandler *web.ArticleHandler) *gin.Engine {
 	server := gin.Default()
 	server.Use(middlewares...)
 	userHandler.RegisterRoutes(server)

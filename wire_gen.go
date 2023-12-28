@@ -7,7 +7,7 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/jasonzhao47/cuddle/internal/domain/event"
 	"github.com/jasonzhao47/cuddle/internal/repository"
 	"github.com/jasonzhao47/cuddle/internal/repository/cache"
 	"github.com/jasonzhao47/cuddle/internal/repository/dao"
@@ -18,7 +18,7 @@ import (
 
 // Injectors from wire.go:
 
-func InitWebServer() *gin.Engine {
+func InitWebApp() *App {
 	cmdable := ioc.InitRedis()
 	v := ioc.GinMiddlewares(cmdable)
 	db := ioc.InitDB()
@@ -40,8 +40,15 @@ func InitWebServer() *gin.Engine {
 	userActivityCache := cache.NewUserActivityCache(cmdable)
 	userActivityDAO := dao.NewUserActivityDAO(db)
 	userActivityRepository := repository.NewCacheUserActivityRepository(userActivityCache, userActivityDAO)
-	userActivityService := service.NewActivityService(userActivityRepository)
+	userActivityService := service.NewUserActivityService(userActivityRepository)
 	articleHandler := web.NewArticleHandler(articleService, userActivityService, logger)
 	engine := ioc.InitWebServer(v, userHandler, articleHandler)
-	return engine
+	client := ioc.InitSaramaClient()
+	userActivityEventConsumer := event.NewUserActivityEventConsumer(userActivityRepository, client, logger)
+	v2 := ioc.InitConsumers(userActivityEventConsumer)
+	app := &App{
+		server:    engine,
+		consumers: v2,
+	}
+	return app
 }

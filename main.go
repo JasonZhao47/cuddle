@@ -12,10 +12,11 @@ func main() {
 	// all-in-one initialization for web server
 	initViperV2()
 	//initThirdParty()
-	server := InitWebServer()
+	app := InitWebApp()
 	initPrometheus()
+
 	// run a health check
-	server.GET("/health", func(ctx *gin.Context) {
+	app.server.GET("/health", func(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "I'm still alive!")
 	})
 	// run on a port
@@ -30,7 +31,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = server.Run(c.Addr)
+	err = app.server.Run(c.Addr)
 	if err != nil {
 		panic(err)
 	}
