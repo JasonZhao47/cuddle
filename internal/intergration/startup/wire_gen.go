@@ -9,6 +9,7 @@ package startup
 import (
 	"github.com/google/wire"
 	"github.com/jasonzhao47/cuddle/internal/repository"
+	"github.com/jasonzhao47/cuddle/internal/repository/cache"
 	"github.com/jasonzhao47/cuddle/internal/repository/dao"
 	"github.com/jasonzhao47/cuddle/internal/service"
 	"github.com/jasonzhao47/cuddle/internal/web"
@@ -16,17 +17,22 @@ import (
 
 // Injectors from wire.go:
 
-func InitArticleHandler(dao2 dao.ArticleDAO) *web.ArticleHandler {
-	articleRepository := repository.NewArticleRepository(dao2)
+func InitArticleHandler(dao2 dao.ArticleDAO, activityDao dao.UserActivityDAO) *web.ArticleHandler {
+	cmdable := InitRedis()
+	articleCache := cache.NewArticleCache(cmdable)
+	articleRepository := repository.NewArticleRepository(dao2, articleCache)
 	articleService := service.NewArticleService(articleRepository)
+	userActivityCache := cache.NewUserActivityCache(cmdable)
+	userActivityRepository := repository.NewCacheUserActivityRepository(userActivityCache, activityDao)
+	userActivityService := service.NewUserActivityService(userActivityRepository)
 	logger := InitLog()
-	articleHandler := web.NewArticleHandler(articleService, logger)
+	articleHandler := web.NewArticleHandler(articleService, userActivityService, logger)
 	return articleHandler
 }
 
 // wire.go:
 
 var (
-	thirdPartyDep          = wire.NewSet(InitDB, InitLog)
-	articleServiceProvider = wire.NewSet(dao.NewArticleGormDAO)
+	thirdPartyDep          = wire.NewSet(InitDB, InitLog, InitRedis)
+	articleServiceProvider = wire.NewSet(dao.NewArticleGormDAO, dao.NewUserActivityDAO)
 )
