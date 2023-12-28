@@ -13,7 +13,7 @@ type activityService struct {
 	repo repository.UserActivityRepository
 }
 
-func NewActivityService(repo repository.UserActivityRepository) UserActivityService {
+func NewUserActivityService(repo repository.UserActivityRepository) UserActivityService {
 	return &activityService{repo: repo}
 }
 
