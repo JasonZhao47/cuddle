@@ -15,7 +15,8 @@ const topic = "user_activity"
 type Consumer interface {
 	Start() error
 	BatchStart() error
-	Consume(messages []*sarama.ConsumerMessage, event article.ReadEvent) error
+	Consume(messages *sarama.ConsumerMessage, event article.ReadEvent) error
+	BatchConsume(messages []*sarama.ConsumerMessage, event article.ReadEvent) error
 }
 
 type UserActivityEventConsumer struct {
@@ -32,7 +33,14 @@ func NewUserActivityEventConsumer(repo repository.UserActivityRepository, client
 	}
 }
 
-func (u *UserActivityEventConsumer) Consume(messages []*sarama.ConsumerMessage, event article.ReadEvent) error {
+func (u *UserActivityEventConsumer) Consume(messages *sarama.ConsumerMessage, event article.ReadEvent) error {
+	// 消费特定内容
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	return u.repo.IncrRead(ctx, "article", event.Aid)
+}
+
+func (u *UserActivityEventConsumer) BatchConsume(messages []*sarama.ConsumerMessage, event article.ReadEvent) error {
 	// 消费特定内容
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -63,7 +71,7 @@ func (u *UserActivityEventConsumer) BatchStart() error {
 	go func() {
 		u.l.Info("开始消费", logger.String("topic", article.TopicReadEvent))
 		// 插件和钩子
-		err := cg.Consume(context.Background(), []string{article.TopicReadEvent}, saramax.NewBatchHandler[article.ReadEvent](u.Consume, u.l))
+		err := cg.Consume(context.Background(), []string{article.TopicReadEvent}, saramax.NewBatchHandler[article.ReadEvent](u.BatchConsume, u.l))
 		if err != nil {
 			u.l.Error("消费错误", logger.Error(err))
 		}

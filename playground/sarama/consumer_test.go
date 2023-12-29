@@ -10,12 +10,13 @@ var (
 	groupID = "testing_group"
 )
 
+type TestingHandler struct{}
+
 func TestSyncConsumer(t *testing.T) {
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
 
 	_, err := sarama.NewConsumerGroup(addr, groupID, config)
 	assert.NoError(t, err)
-	//ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-	//err = cg.Consume(ctx, "testing_topic")
+	//cg.Consume(context.Background(), "testing_topics", handler)
 }
