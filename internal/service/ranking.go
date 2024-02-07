@@ -108,7 +108,7 @@ func (b *BatchRankingService) RankTopN(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	return b.repo.Set(ctx, arts)
+	return b.repo.ReplaceTopN(ctx, arts)
 }
 
 type Score struct {

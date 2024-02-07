@@ -9,7 +9,7 @@ import (
 )
 
 type RankingCache interface {
-	Set(ctx context.Context, arts []domain.PublishedArticle) error
+	ReplaceTopN(ctx context.Context, arts []domain.PublishedArticle) error
 }
 
 type rankingCache struct {
@@ -22,7 +22,7 @@ func NewRankingCache(client redis.Cmdable, key string, expiration time.Duration)
 	return &rankingCache{client: client, key: key, expiration: expiration}
 }
 
-func (r *rankingCache) Set(ctx context.Context, arts []domain.PublishedArticle) error {
+func (r *rankingCache) ReplaceTopN(ctx context.Context, arts []domain.PublishedArticle) error {
 	for i := range arts {
 		arts[i].Content = arts[i].Abstract()
 	}

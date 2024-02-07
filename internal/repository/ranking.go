@@ -7,7 +7,7 @@ import (
 )
 
 type RankingRepository interface {
-	Set(ctx context.Context, arts []domain.PublishedArticle) error
+	ReplaceTopN(ctx context.Context, arts []domain.PublishedArticle) error
 }
 
 type CacheRankingRepository struct {
@@ -18,6 +18,6 @@ func NewCacheRankingRepository(cache cache.RankingCache) *CacheRankingRepository
 	return &CacheRankingRepository{cache: cache}
 }
 
-func (c *CacheRankingRepository) Set(ctx context.Context, arts []domain.PublishedArticle) error {
-	return c.cache.Set(ctx, arts)
+func (c *CacheRankingRepository) ReplaceTopN(ctx context.Context, arts []domain.PublishedArticle) error {
+	return c.cache.ReplaceTopN(ctx, arts)
 }
