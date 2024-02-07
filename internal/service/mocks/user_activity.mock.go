@@ -12,6 +12,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	domain "github.com/jasonzhao47/cuddle/internal/domain"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -36,6 +37,21 @@ func NewMockUserActivityService(ctrl *gomock.Controller) *MockUserActivityServic
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockUserActivityService) EXPECT() *MockUserActivityServiceMockRecorder {
 	return m.recorder
+}
+
+// GetReadByIds mocks base method.
+func (m *MockUserActivityService) GetReadByIds(ctx context.Context, biz string, ids []int64) ([]domain.UserActivity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetReadByIds", ctx, biz, ids)
+	ret0, _ := ret[0].([]domain.UserActivity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetReadByIds indicates an expected call of GetReadByIds.
+func (mr *MockUserActivityServiceMockRecorder) GetReadByIds(ctx, biz, ids any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetReadByIds", reflect.TypeOf((*MockUserActivityService)(nil).GetReadByIds), ctx, biz, ids)
 }
 
 // IncrRead mocks base method.

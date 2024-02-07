@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"github.com/jasonzhao47/cuddle/internal/domain"
 	"github.com/jasonzhao47/cuddle/internal/repository/cache"
 	"github.com/jasonzhao47/cuddle/internal/repository/dao"
 )
@@ -9,6 +10,7 @@ import (
 type UserActivityRepository interface {
 	IncrRead(ctx context.Context, biz string, bizId int64) error
 	BatchIncrRead(ctx context.Context, bizs []string, bizIds []int64) error
+	GetReadByIds(ctx context.Context, biz string, ids []int64) ([]domain.UserActivity, error)
 }
 
 type CacheUserActivityRepository struct {
@@ -45,4 +47,24 @@ func (repo *CacheUserActivityRepository) BatchIncrRead(ctx context.Context, bizs
 		}
 	}()
 	return nil
+}
+
+func (repo *CacheUserActivityRepository) GetReadByIds(ctx context.Context, biz string, ids []int64) ([]domain.UserActivity, error) {
+	res := make([]domain.UserActivity, 0)
+	userDao, err := repo.dao.GetReadByIds(ctx, biz, ids)
+	if err != nil {
+		return []domain.UserActivity{}, nil
+	}
+	for _, d := range userDao {
+		res = append(res, repo.toDomain(d))
+	}
+	return res, nil
+}
+
+func (repo *CacheUserActivityRepository) toDomain(dao dao.UserActivity) domain.UserActivity {
+	return domain.UserActivity{
+		Id:      dao.Id,
+		ReadCnt: dao.ReadCnt,
+	}
+
 }

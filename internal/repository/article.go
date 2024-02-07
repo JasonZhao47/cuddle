@@ -21,6 +21,7 @@ type ArticleRepository interface {
 	Sync(context.Context, domain.Article) (int64, error)
 	SyncStatus(context.Context, int64, int64, domain.ArticleStatus) error
 	GetPubById(context.Context, int64) (domain.PublishedArticle, error)
+	ListPub(ctx context.Context, start time.Time, offset int, batchSize int) ([]domain.PublishedArticle, error)
 }
 
 type CachedArticleRepository struct {
@@ -214,4 +215,18 @@ func (repo *CachedArticleRepository) preCache(ctx context.Context, arts []domain
 			// log here
 		}
 	}
+}
+
+func (repo *CachedArticleRepository) ListPub(ctx context.Context, start time.Time,
+	offset int, batchSize int) ([]domain.PublishedArticle, error) {
+	var res []domain.PublishedArticle
+
+	artDao, err := repo.dao.ListPub(ctx, start, offset, batchSize)
+	if err != nil {
+		return []domain.PublishedArticle{}, nil
+	}
+	for _, d := range artDao {
+		res = append(res, repo.toPublishedDomain(d))
+	}
+	return res, nil
 }

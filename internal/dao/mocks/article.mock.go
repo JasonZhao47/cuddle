@@ -11,6 +11,7 @@ package daomock
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	domain "github.com/jasonzhao47/cuddle/internal/domain"
 	dao "github.com/jasonzhao47/cuddle/internal/repository/dao"
@@ -98,6 +99,21 @@ func (m *MockArticleDAO) Insert(arg0 context.Context, arg1 dao.Article) (int64, 
 func (mr *MockArticleDAOMockRecorder) Insert(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockArticleDAO)(nil).Insert), arg0, arg1)
+}
+
+// ListPub mocks base method.
+func (m *MockArticleDAO) ListPub(arg0 context.Context, arg1 time.Time, arg2, arg3 int) ([]dao.PublishedArticle, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListPub", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].([]dao.PublishedArticle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListPub indicates an expected call of ListPub.
+func (mr *MockArticleDAOMockRecorder) ListPub(arg0, arg1, arg2, arg3 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListPub", reflect.TypeOf((*MockArticleDAO)(nil).ListPub), arg0, arg1, arg2, arg3)
 }
 
 // Sync mocks base method.

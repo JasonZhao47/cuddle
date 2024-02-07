@@ -5,6 +5,7 @@ import (
 	"github.com/jasonzhao47/cuddle/internal/domain"
 	"github.com/jasonzhao47/cuddle/internal/domain/event/article"
 	"github.com/jasonzhao47/cuddle/internal/repository"
+	"time"
 )
 
 type ArticleService interface {
@@ -16,6 +17,7 @@ type ArticleService interface {
 	Publish(context.Context, domain.Article) (int64, error)
 	WithDraw(ctx context.Context, userId int64, artId int64) error
 	GetPubById(ctx context.Context, artId int64) (domain.PublishedArticle, error)
+	ListPub(ctx context.Context, start time.Time, offset int, batchSize int) ([]domain.PublishedArticle, error)
 }
 
 type articleService struct {
@@ -71,4 +73,9 @@ func (svc *articleService) GetPubById(ctx context.Context, id int64) (domain.Pub
 		}
 	}()
 	return pubArt, err
+}
+
+func (svc *articleService) ListPub(ctx context.Context, start time.Time, offset int, batchSize int) ([]domain.PublishedArticle, error) {
+	pubArts, err := svc.repo.ListPub(ctx, start, offset, batchSize)
+	return pubArts, err
 }

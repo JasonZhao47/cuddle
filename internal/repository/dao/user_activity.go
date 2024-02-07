@@ -10,6 +10,7 @@ import (
 type UserActivityDAO interface {
 	IncrReadCntIfPresent(ctx context.Context, biz string, bizId int64) error
 	BatchIncrReadCntIfPresent(ctx context.Context, bizs []string, bizIds []int64) error
+	GetReadByIds(ctx context.Context, biz string, bizIds []int64) ([]UserActivity, error)
 }
 
 type userActivityDAO struct {
@@ -50,6 +51,14 @@ func (d *userActivityDAO) BatchIncrReadCntIfPresent(ctx context.Context, bizs []
 		}
 		return nil
 	})
+}
+
+func (d *userActivityDAO) GetReadByIds(ctx context.Context, biz string, bizIds []int64) ([]UserActivity, error) {
+	var res []UserActivity
+	err := d.db.WithContext(ctx).
+		Where("biz = ? AND biz_id IN ?", biz, bizIds).
+		Find(&res).Error
+	return res, err
 }
 
 type UserActivity struct {

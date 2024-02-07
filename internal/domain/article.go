@@ -41,3 +41,13 @@ func (s ArticleStatus) ToUint8() uint8 {
 }
 
 type PublishedArticle Article
+
+func (a PublishedArticle) Abstract() string {
+	var abstractLimit = 140
+	// rune counts non-ascii chars as 1, bytes won't
+	str := []rune(a.Content)
+	if len(str) > abstractLimit {
+		str = str[:abstractLimit]
+	}
+	return string(str)
+}

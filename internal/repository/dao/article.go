@@ -17,6 +17,7 @@ type ArticleDAO interface {
 	Sync(context.Context, Article) (int64, error)
 	UpdateById(context.Context, Article) error
 	SyncStatus(ctx context.Context, userId int64, artId int64, status domain.ArticleStatus) error
+	ListPub(context.Context, time.Time, int, int) ([]PublishedArticle, error)
 }
 
 type ArticleGormDAO struct {
@@ -157,6 +158,16 @@ func (d *ArticleGormDAO) SyncStatus(ctx context.Context, userId int64, artId int
 			"status": status.ToUint8(),
 		}).Error
 	})
+}
+
+func (d *ArticleGormDAO) ListPub(ctx context.Context, start time.Time, offset int, batchSize int) ([]PublishedArticle, error) {
+	var res []PublishedArticle
+	const ArticleStatusPublished = 2
+	err := d.db.WithContext(ctx).Where("utime < ? AND status = ?", start.UnixMilli(), ArticleStatusPublished).
+		Offset(offset).
+		Limit(batchSize).
+		Find(&res).Error
+	return res, err
 }
 
 type Article struct {
